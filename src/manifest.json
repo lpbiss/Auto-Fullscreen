@@ -1,0 +1,28 @@
+{
+    "manifest_version": 2,
+    "name": "Auto Fullscreen",
+    "version": "1.0.0",
+    "background": {
+        "scripts": [
+            "background.js"
+        ],
+        "persistent": false
+    },
+    "permissions": [
+        "tabs",
+        "storage",
+        "http://*/*",
+        "https://*/*"
+    ],
+    "options_page": "options.html",
+    "browser_action": {},
+    "icons": {
+        "128": "./icon/icon128.png"
+    },
+    "content_scripts": [
+        {
+            "matches": ["http://*/*", "https://*/*"],
+            "js": ["inject.js"]
+        }
+    ]
+}

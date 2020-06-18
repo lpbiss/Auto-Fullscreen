@@ -1,0 +1,15 @@
+<svg version="1.1" width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        polyline {
+            fill: none;
+            stroke: rgb(48, 108, 207);
+            stroke-width: 14;
+        }
+    </style>
+
+    <polyline points="3 40, 3 3, 40 3"/>
+    <polyline points="97 40, 97 3, 60 3"/>
+    <polyline points="3 60, 3 97, 40 97" />
+    <polyline points="60 97, 97 97, 97 60" />
+    <polygon stroke="rgb(48, 108, 207)" stroke-width="4" fill="rgb(48, 108, 207)" stroke-linejoin="round" points="30 25,30 75,75 50" />
+</svg>

@@ -1,0 +1,112 @@
+#root {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    input {
+        text-align: center;
+    }
+
+    input:invalid {
+        border: 2px dashed red;
+    }
+
+    .config-row {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        margin-bottom: 5px;
+    }
+
+    .config-lower-bound input {
+        width: 60px;
+        margin: 0 3px 0 5px;
+    }
+
+    .config-ignore-percentage input {
+        width: 65px;
+        margin-left: 5px;
+        margin-right: 5px;
+    }
+
+    .config-hotkey {
+        input {
+            margin-left: 5px;
+            margin-right: 15px;
+        }
+
+        input[type="text"] {
+            width: 25px;
+        }
+
+        input[type="checkbox"] {
+            width: auto;
+        }
+    }
+
+    .submit {
+        display: flex;
+        justify-content: flex-end;
+
+        button {
+            margin-right: 20px;
+        }
+    }
+
+    .config-automation {
+        input {
+            margin: 0 4px 0 4px;
+        }
+    }
+}
+
+#match-list {
+    display: flex;
+    flex-direction: column;
+
+    .match-row {
+        display: flex;
+        flex-direction: row;
+        margin: 0 0 8px 0;
+        justify-content: center;
+        align-items: center;
+        height: 25px;
+    }
+
+    p {
+        display: inline;
+    }
+
+    p.disabled {
+        color: gray;
+    }
+
+    button {
+        margin-left: 20px;
+    }
+}
+
+.title {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    margin-top: 20px;
+}
+
+.title::before,
+.title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #ccc;
+}
+
+.title::before {
+    margin-right: 10px;
+    margin-left: 30%;
+}
+
+.title::after {
+    margin-left: 10px;
+    margin-right: 30%;
+}
