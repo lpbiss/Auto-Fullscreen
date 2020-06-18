@@ -1,0 +1,30 @@
+{
+    "env": {
+        "browser": true,
+        "es6": true
+    },
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "rules": {
+        "linebreak-style": [
+            "error",
+            "windows"
+        ],
+        "semi": [
+            "warn",
+            "never"
+        ],
+        "no-console": "off",
+        "camelcase": "off",
+        "@typescript-eslint/camelcase": 0,
+        "@typescript-eslint/no-use-before-define": 0,
+        "@typescript-eslint/no-explicit-any": 0
+    }
+}
