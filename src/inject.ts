@@ -2,6 +2,10 @@ import './inject.scss'
 import closeSVG from './resource/close.svg'
 import clockwiseSVG from './resource/clockwise.svg'
 import anticlockwiseSVG from './resource/anticlockwise.svg'
+import exitFitViewportSVG from './resource/fullscreen-exit.svg'
+import fitViewportSVG from './resource/fit-viewport.svg'
+import zoomInSVG from './resource/zoom-in.svg'
+import zoomOut from './resource/zoom-out.svg'
 
 
 const configKeys: Array<keyof Config> = [
@@ -107,24 +111,23 @@ chrome.storage.sync.get(configKeys, function (result) {
 
     function setImageFullScreen(imageSrc: string): void {
 
+        isFullScreenState = true
+
         const originalBodyStyle = document.body.style.cssText
         document.body.style.cssText = `overflow: hidden !important;`
 
-        isFullScreenState = true
-
         const imageContainer = document.createElement('div')
-        imageContainer.id = 'auto-fullscreen-image-contianer'
+        imageContainer.className = '--auto-fullscreen-image-contianer fit-viewport'
         document.body.appendChild(imageContainer)
 
-        // TODO: rotate will not exchange the intrinsic wdith/height
         const img = document.createElement('img')
-        img.className = 'fullscreen-image fit-screen horizontal'
+        img.className = 'fullscreen-image horizontal'
         img.setAttribute('rotate-state', '0')
         img.src = imageSrc
         imageContainer.appendChild(img)
 
         const toolsContainer = document.createElement('div')
-        toolsContainer.id = 'fullscreen-image-tools-container'
+        toolsContainer.className = '--fullscreen-image-tools-container'
         imageContainer.appendChild(toolsContainer)
 
         function stringToSVG(svgString: string): SVGElement {
@@ -166,6 +169,27 @@ chrome.storage.sync.get(configKeys, function (result) {
         toolsContainer.appendChild(routateClockwise)
 
 
+        // exit fit viewport mode
+        const exitFitViewport = stringToSVG(exitFitViewportSVG)
+        exitFitViewport.onclick = (): void => {
+            imageContainer.classList.remove('fit-viewport')
+            imageContainer.classList.add('custom-size')
+            exitFitViewport.remove()
+            toolsContainer.appendChild(fitViewport)
+        }
+        toolsContainer.appendChild(exitFitViewport)
+
+
+        // fit viewport mode
+        const fitViewport = stringToSVG(fitViewportSVG)
+        fitViewport.onclick = (): void => {
+            imageContainer.classList.add('fit-viewport')
+            imageContainer.classList.remove('custom-size')
+            fitViewport.remove()
+            toolsContainer.appendChild(exitFitViewport)
+        }
+
+        
         // close callback
         const closeImage = (): void => {
             imageContainer.remove()
@@ -330,7 +354,7 @@ chrome.storage.sync.get(configKeys, function (result) {
         document.querySelector('overlay-root#auto-fullscreen-overlay-root')?.remove()
 
         const overlayRoot = document.createElement('overlay-root')
-        overlayRoot.id = 'auto-fullscreen-overlay-root'
+        overlayRoot.className = '--auto-fullscreen-overlay-root'
         document.body.appendChild(overlayRoot)
 
         candidateElements.forEach(elem => {
