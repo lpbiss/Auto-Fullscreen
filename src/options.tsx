@@ -44,7 +44,7 @@ class ConfigForm extends React.Component<Config, ConfigFormState> {
             hotkeyCtrl: this.hotkeyCtrlInput.current.checked,
             hotkeyAlt: this.hotkeyAltInput.current.checked,
         }
-        chrome.storage.sync.set(newConfig)
+        chrome.storage.local.set(newConfig)
     }
 
     handleAddMatch = (event: React.FormEvent<HTMLFormElement>): void => {
@@ -64,14 +64,12 @@ class ConfigForm extends React.Component<Config, ConfigFormState> {
             matchList: [...this.state.matchList, newMatch]
         }, this.syncMatchList)
 
-        // this.syncMatchList()
     }
 
     handleDel = (index: number): void => {
         const newMatchList = [...this.state.matchList]
         newMatchList.splice(index, 1)
         this.setState({ matchList: newMatchList }, this.syncMatchList)
-        // this.syncMatchList()
     }
 
     toggleEnableState = (index: number): void => {
@@ -81,7 +79,7 @@ class ConfigForm extends React.Component<Config, ConfigFormState> {
     }
 
     syncMatchList = (): void => {
-        chrome.storage.sync.set({ matchList: this.state.matchList })
+        chrome.storage.local.set({ matchList: this.state.matchList })
     }
 
 
@@ -92,7 +90,7 @@ class ConfigForm extends React.Component<Config, ConfigFormState> {
                 <form onSubmit={this.handleSubmit}>
                     <div className="config-row config-lower-bound">
                         <label>
-                            Ignore elements that smaller than:
+                            Ignore elements smaller than:
                             <input
                                 name="widthLowerBound"
                                 type="number"
@@ -116,7 +114,7 @@ class ConfigForm extends React.Component<Config, ConfigFormState> {
 
                     <div className="config-row config-ignore-percentage">
                         <label>
-                            Ignore elements that smaller than:
+                            Ignore elements smaller than:
                             <input
                                 name="areaIgnorePercentage"
                                 type='number'
@@ -234,36 +232,10 @@ const configKeys: Array<keyof Config> = [
     'matchList',
 ]
 
-if (chrome.storage) {
-    chrome.storage.sync.get(configKeys, function (result) {
-        ReactDOM.render(
-            <ConfigForm {...(result as Config)} />,
-            document.getElementById("root")
-        )
-    })
-} else {
-    const config: Config = {
-        widthLowerBound: 100,
-        heightLowerBound: 100,
-        areaIgnorePercentage: 0.4,
-        hotkeyCtrl: true,
-        hotkeyAlt: true,
-        hotKey: ']',
-        hotkeyEnable: true,
-        matchList: [
-            {
-                match: 'example.com',
-                selector: 'img.target',
-                isEnabled: true,
-            },
-            {
-                match: 'test-no-selector.com',
-                isEnabled: true,
-            }
-        ],
-    }
+
+chrome.storage.local.get(configKeys, function (result) {
     ReactDOM.render(
-        <ConfigForm {...config} />,
+        <ConfigForm {...(result as Config)} />,
         document.getElementById("root")
     )
-}
+})

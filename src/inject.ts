@@ -4,8 +4,8 @@ import clockwiseSVG from './resource/clockwise.svg'
 import anticlockwiseSVG from './resource/anticlockwise.svg'
 import exitFitViewportSVG from './resource/fullscreen-exit.svg'
 import fitViewportSVG from './resource/fit-viewport.svg'
-import zoomInSVG from './resource/zoom-in.svg'
-import zoomOut from './resource/zoom-out.svg'
+// import zoomInSVG from './resource/zoom-in.svg'
+// import zoomOutSVG from './resource/zoom-out.svg'
 
 
 const configKeys: Array<keyof Config> = [
@@ -19,24 +19,20 @@ const configKeys: Array<keyof Config> = [
     'matchList',
 ]
 
-console.log('inject成功')
-
-chrome.storage.sync.get(configKeys, function (result) {
+chrome.storage.local.get(configKeys, function (result) {
 
     const config: Config = result as Config
 
-    console.log(config)
     /** 
      * This variable will be set to true when
-     * setVideoFullScreen or setImageFullScreen get called.
+     * setVideoFullScreen or setImageFullScreen is called.
      */
     let isFullScreenState = false
     /** this function should set isFullScreenState to false */
     let exitFullScreen: () => void
 
-
+    // add hotkey to exit fullscreen
     document.addEventListener('keyup', function (ev) {
-        console.log(ev.key)
         if (ev.key === config.hotKey &&
             (ev.ctrlKey === config.hotkeyCtrl) &&
             (ev.altKey === config.hotkeyAlt)) {
@@ -49,7 +45,7 @@ chrome.storage.sync.get(configKeys, function (result) {
         }
     })
 
-
+    // when the extension icon being clicked
     chrome.runtime.onMessage.addListener(function (msg: contentScriptMessage) {
         if (msg.action === 'fullscreen') {
             if (isFullScreenState) {
@@ -295,7 +291,6 @@ chrome.storage.sync.get(configKeys, function (result) {
                 const playNative = mediaProto.play
                 const pauseNative = mediaProto.pause;
 
-                // const hookedVideo = video as FullScreenVideo
                 (mediaProto as any).play = function (source: 'fullscreen'): void {
                     if (source === 'fullscreen') playNative.call(this)
                 };
@@ -303,7 +298,6 @@ chrome.storage.sync.get(configKeys, function (result) {
                     if (source === 'fullscreen') pauseNative.call(this)
                 }
 
-                // disallow video.removeAttribute('controls')
                 const removeAttributeNative = mediaProto.removeAttribute
                 mediaProto.removeAttribute = function (attr): void {
                     if (attr === 'controls') return
@@ -328,11 +322,8 @@ chrome.storage.sync.get(configKeys, function (result) {
             exitFullScreen = (): void => {
                 runInPageContext(() => {
                     (window as any)['___$recoverHook___']()
-                    console.log('注入script执行')
                     document.currentScript.remove()
                 })
-
-                console.log('顺序代码执行')
 
                 document.body.style.cssText = originalBodyStyle
 
@@ -406,7 +397,7 @@ chrome.storage.sync.get(configKeys, function (result) {
     }
 
 
-    (async function startCustomBehavior(): Promise<void> {
+    (async function startAutomating(): Promise<void> {
 
         for (const matchDetail of config.matchList) {
             

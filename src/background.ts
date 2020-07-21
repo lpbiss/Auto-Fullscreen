@@ -15,23 +15,12 @@ const config: Config = {
     ],
 }
 
-const configKeys: Array<keyof Config> = [
-    'widthLowerBound',
-    'heightLowerBound',
-    'areaIgnorePercentage',
-    'matchList',
-    'hotkeyCtrl',
-    'hotkeyAlt',
-    'hotKey',
-    'hotkeyEnable',
-]
-
 
 chrome.runtime.onInstalled.addListener(function (details) {
     if (details.reason === 'install' || details.reason === 'update') {
-        chrome.storage.sync.get(Object.keys(config), function (result: Partial<Config>) {
+        chrome.storage.local.get(Object.keys(config), function (result: Partial<Config>) {
             Object.assign(config, result)
-            chrome.storage.sync.set(config)
+            chrome.storage.local.set(config)
         })
     }
 })

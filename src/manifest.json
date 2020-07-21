@@ -2,11 +2,12 @@
     "manifest_version": 2,
     "name": "Auto Fullscreen",
     "version": "1.0.0",
+    "description": "Click to maximize videos or images.",
+    "homepage_url": "https://github.com/lpbiss/Auto-Fullscreen",
     "background": {
         "scripts": [
             "background.js"
-        ],
-        "persistent": false
+        ]
     },
     "permissions": [
         "tabs",
@@ -14,7 +15,9 @@
         "http://*/*",
         "https://*/*"
     ],
-    "options_page": "options.html",
+    "options_ui": {
+        "page": "options.html"
+    },
     "browser_action": {},
     "icons": {
         "128": "./icon/icon128.png"
