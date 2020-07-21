@@ -239,6 +239,7 @@ chrome.storage.local.get(configKeys, function (result) {
 
         if (isNativePlayer) {
             exitFullScreen = (): void => {
+                document.body.style.cssText = originalBodyStyle
                 target.style.cssText = originalStyle
                 styleElem.remove()
                 isFullScreenState = false
