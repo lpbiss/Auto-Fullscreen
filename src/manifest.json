@@ -2,7 +2,8 @@
     "manifest_version": 2,
     "name": "Auto Fullscreen",
     "version": "1.0.0",
-    "description": "Click to maximize videos or images.",
+    "description": "Maximize videos or images.",
+    "author": "lpbiss",
     "homepage_url": "https://github.com/lpbiss/Auto-Fullscreen",
     "background": {
         "scripts": [
@@ -24,8 +25,13 @@
     },
     "content_scripts": [
         {
-            "matches": ["http://*/*", "https://*/*"],
-            "js": ["inject.js"]
+            "matches": [
+                "http://*/*",
+                "https://*/*"
+            ],
+            "js": [
+                "inject.js"
+            ]
         }
     ]
 }

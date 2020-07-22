@@ -3,6 +3,9 @@ const CopyPlugin = require('copy-webpack-plugin')
 
 module.exports = {
     watch: true,
+    optimization: {
+        minimize: false
+    },
     entry: {
         inject: './src/inject.ts',
         background: './src/background.ts',
