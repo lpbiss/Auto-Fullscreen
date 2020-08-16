@@ -7,8 +7,8 @@ import fitViewportSVG from './resource/fit-viewport.svg'
 // import zoomInSVG from './resource/zoom-in.svg'
 // import zoomOutSVG from './resource/zoom-out.svg'
 
+import {createStyleNode, runInPageContext, concatCSSRuleMap} from './util'
 
-// TODO: 考虑使用MutationOberser处理resize这种事件导致的style重计算
 
 const configKeys: Array<keyof Config> = [
     'widthLowerBound',
@@ -214,64 +214,91 @@ function setVideoFullScreen(target: HTMLVideoElement): void {
 
     isFullScreenState = true
 
-    // hide all elements
-    const styleElem = document.createElement('style')
-    /**
-     * same to: * { ... }
-     * MDN: https://developer.mozilla.org/en-US/docs/Web/CSS/position
-     * ... when one of its ancestors has a transform, perspective, or filter property
-     * set to something other than none, in which case that ancestor behaves as the containing block.
-     */
-    const cssText = `
+    const styleNode = createStyleNode(`
+        /* same to: * { ... } */
         :not(#for-higher-specificity) {
             visibility: hidden !important;
             overflow: visible !important;
+            /*
+                see https://developer.mozilla.org/en-US/docs/Web/CSS/position
+                for why set transform, perspective, filter to none
+            */
             transform: none !important;
             perspective: none !important;
             filter: none !important;
         }
-    `
-    styleElem.appendChild(document.createTextNode(cssText))
-    document.head.appendChild(styleElem)
 
-    const originalBodyStyle = document.body.style.cssText
-    // prevent scrolling
-    document.body.style.cssText = `${originalBodyStyle} overflow: hidden !important;`
+        /*
+            prevent scrolling in fullscreen mode
+            using inline css would be more reliable, but at risk of being overrided
+        */
+        html { overflow: hidden !important; }
+    `)
 
-    const isNativePlayer = target.getAttribute('controls') !== null
+    const originalStyleMap = new Map()
+    for (const styleName of target.style) {
+        const priority =  target.style.getPropertyPriority(styleName) === 'important' ? '!important' : ''
+        originalStyleMap.set(styleName, `${target.style.getPropertyValue(styleName)} ${priority}`.trim())
+    }
 
-    const originalStyle = target.style.cssText
-    const fullscreenCssText = `
-        position: fixed !important;
-        top: 0px !important;
-        left: 0px !important;
-        width: 100vw !important;
-        height: 100vh !important;
-        zIndex: 999999999 !important;
-        visibility: visible !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        opacity: 1 !important;
-    `
+    const CSSRuleMap: Map<string, string> = new Map([
+        ['position', 'fixed !important'],
+        ['top', '0px !important'],
+        ['left', '0px !important'],
+        ['width', '100vw !important'],
+        ['height', '100vh !important'],
+        ['zIndex', '99999 !important'],
+        ['visibility', 'visible !important'],
+        ['margin', '0 !important'],
+        ['padding', '0 !important'],
+        ['opacity', '1 !important'],
+    ])
+
+    const fullscreenCssText = concatCSSRuleMap(CSSRuleMap)
     target.style.cssText = fullscreenCssText
-    target.setAttribute('controls', '')
     target.focus()
 
+    const obConfig: MutationObserverInit = {
+        attributes: true,
+        childList: false,
+        subtree: false,
+        attributeFilter: ['style']
+    }
+    const ob = new MutationObserver((mutations, observer) => {
+        observer.disconnect()
+        // detect style change and save to originalStyleMap
+        for (const styleName of target.style) {
+            const val = target.style.getPropertyValue(styleName)
+            const isImportant = target.style.getPropertyPriority(styleName)
+            const concatVal = `${val} ${isImportant ? '!important' : ''}`.trim()
+            if (CSSRuleMap.has(styleName)) {
+                if (CSSRuleMap.get(styleName) === concatVal) continue
+                else originalStyleMap.set(styleName, concatVal)
+            } else {
+                originalStyleMap.set(styleName, concatVal)
+            }
+        }
+        target.style.cssText = fullscreenCssText
+        observer.observe(target, obConfig)
+    })
+    ob.observe(target, obConfig)
 
-    if (isNativePlayer) {
+
+    if (target.getAttribute('controls') !== null) {
         exitFullScreen = (): void => {
-            document.body.style.cssText = originalBodyStyle
-            target.style.cssText = originalStyle
-            styleElem.remove()
+            target.style.cssText = concatCSSRuleMap(originalStyleMap)
+            ob.disconnect()
+            // target.style.cssText = originalStyle
+            styleNode.remove()
             isFullScreenState = false
         }
     } else {
+        target.setAttribute('controls', '')
+
         /** use this type to prevent ts compile error */
         const hookedVideo = target as FullScreenVideo
 
-        // handle click and space press event
-        // otherwise the built-in html5 player may conflict with the site's custom player
-        const handleClickVideo = (ev: MouseEvent): void => {
+        const handleClick = (ev: MouseEvent): void => {
             if (ev.target == hookedVideo) {
                 if (hookedVideo.paused) hookedVideo.play('fullscreen')
                 else hookedVideo.pause('fullscreen')
@@ -291,38 +318,26 @@ function setVideoFullScreen(target: HTMLVideoElement): void {
             }
         }
 
-        document.addEventListener('click', handleClickVideo, { capture: true })
+        document.addEventListener('click', handleClick, { capture: true })
         document.addEventListener('keyup', handleSpacePress)
-
-        // ref: https://intoli.com/blog/sandbox-breakout/
-        const runInPageContext = (func: Function | string): void => {
-            let scriptContent: string
-            if (func instanceof Function)
-                scriptContent = `(${func.toString()})()`
-            else
-                scriptContent = func
-
-            // Create a script tag and inject it into the document.
-            const scriptElement = document.createElement('script')
-            scriptElement.innerHTML = scriptContent
-            document.documentElement.prepend(scriptElement)
-        }
 
         runInPageContext(hookMediaPrototype)
 
         exitFullScreen = (): void => {
+            // this looks like a callback but it runs synchronously
+            // so the hooked removeAttribute method get recovered before
+            // target.removeAttribute('controls') remove controls
             runInPageContext(() => {
                 (window as any)['___$recoverHook___']()
-                document.currentScript.remove()
             })
 
-            document.body.style.cssText = originalBodyStyle
-
-            target.style.cssText = originalStyle
+            target.style.cssText = concatCSSRuleMap(originalStyleMap)
+            ob.disconnect()
+            // target.style.cssText = originalStyle
             target.removeAttribute('controls')
-            styleElem.remove()
+            styleNode.remove()
 
-            document.removeEventListener('click', handleClickVideo, { capture: true })
+            document.removeEventListener('click', handleClick, { capture: true })
             document.removeEventListener('keyup', handleSpacePress)
 
             isFullScreenState = false
@@ -423,8 +438,8 @@ async function startAutomating(): Promise<void> {
 }
 
 
-async function waitForElement(selector: string): Promise<CandidateElement | false> {
-    return await new Promise(resolve => {
+function waitForElement(selector: string): Promise<CandidateElement | false> {
+    return new Promise(resolve => {
         let retryCount = 0
         const handler = setInterval(() => {
             retryCount += 1
@@ -466,6 +481,7 @@ function waitForVisible(): Promise<void> {
 
 /**
  * run as injected script element
+ * hook the play/pause method to prevent the website's player behavior
  */
 function hookMediaPrototype() {
     const mediaProto = HTMLMediaElement.prototype
@@ -496,5 +512,4 @@ function hookMediaPrototype() {
         Object.defineProperty(mediaProto, 'controls', { set: setNative })
     }
 
-    document.currentScript.remove()
 }
