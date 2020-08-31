@@ -9,6 +9,11 @@ import fitViewportSVG from './resource/fit-viewport.svg'
 
 import {createStyleNode, runInPageContext, concatCSSRuleMap} from './util'
 
+/* 
+    Todo:
+    1. support canvas image
+    2. add zoom-in/zoom-out out function to image
+*/
 
 const configKeys: Array<keyof Config> = [
     'widthLowerBound',
