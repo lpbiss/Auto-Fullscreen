@@ -10,9 +10,11 @@ import fitViewportSVG from './resource/fit-viewport.svg'
 import {createStyleNode, runInPageContext, concatCSSRuleMap} from './util'
 
 /* 
-    Todo:
+    Todos:
     1. support canvas image
-    2. add zoom-in/zoom-out out function to image
+    2. add zoom-in/zoom-out function for image
+    3. run in iframe
+    4. click the icon again should cancle selection
 */
 
 const configKeys: Array<keyof Config> = [
