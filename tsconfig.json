@@ -2,8 +2,8 @@
     "compilerOptions": {
         "outDir": "./dist/",
         "sourceMap": false,
-        "noImplicitAny": true,
-        "target": "es6",
+        "strict": true,
+        "target": "es2018",
         "jsx": "react",
     }
 }

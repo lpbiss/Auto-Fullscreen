@@ -7,14 +7,13 @@ import fitViewportSVG from './resource/fit-viewport.svg'
 // import zoomInSVG from './resource/zoom-in.svg'
 // import zoomOutSVG from './resource/zoom-out.svg'
 
-import {createStyleNode, runInPageContext, concatCSSRuleMap} from './util'
+import { createStyleNode, runInPageContext, concatCSSRuleMap } from './util'
 
 /* 
     Todos:
-    1. support canvas image
+    1. support canvas image (ongoing)
     2. add zoom-in/zoom-out function for image
-    3. run in iframe
-    4. click the icon again should cancle selection
+    3. detect iframe elements
 */
 
 const configKeys: Array<keyof Config> = [
@@ -33,11 +32,12 @@ let config: Config
 /** 
  * This variable will be set to true when
  * setVideoFullScreen or setImageFullScreen is called.
+ * TODO: change to: on | off | select
  */
-let isFullScreenState = false
+let fullscreenState: 'on' | 'off' | 'select' = 'off'
 /** this function should set isFullScreenState to false */
-let exitFullScreen: () => void
-
+let exitFullscreen: (() => void) | null
+let clearOverlay: (() => void) | null
 
 chrome.storage.local.get(configKeys, function (result) {
 
@@ -48,26 +48,48 @@ chrome.storage.local.get(configKeys, function (result) {
         if (ev.key === config.hotKey &&
             ev.ctrlKey === config.hotkeyCtrl &&
             ev.altKey === config.hotkeyAlt) {
-            if (isFullScreenState) {
-                exitFullScreen()
-                exitFullScreen = null
-            } else {
-                startAutoFullScreen()
+            switch (fullscreenState) {
+                case 'on':
+                    exitFullscreen?.()
+                    exitFullscreen = null
+                    break
+                case 'off':
+                    startAutoFullScreen()
+                    break
+                case 'select':
+                    clearOverlay?.()
+                    clearOverlay = null
+                    break
             }
-        } else if (ev.key === 'Escape' && isFullScreenState) {
-            exitFullScreen()
-            exitFullScreen = null
+        } else if (ev.key === 'Escape') {
+            switch (fullscreenState) {
+                case 'on':
+                    exitFullscreen?.()
+                    exitFullscreen = null
+                    break
+                case 'select':
+                    clearOverlay?.()
+                    clearOverlay = null
+                    break
+            }
         }
     })
 
     // when the extension icon being clicked
     chrome.runtime.onMessage.addListener(function (msg: contentScriptMessage) {
         if (msg.action === 'fullscreen') {
-            if (isFullScreenState) {
-                exitFullScreen()
-                exitFullScreen = null
-            } else {
-                startAutoFullScreen()
+            switch (fullscreenState) {
+                case 'on':
+                    exitFullscreen?.()
+                    exitFullscreen = null
+                    break
+                case 'off':
+                    startAutoFullScreen()
+                    break
+                case 'select':
+                    clearOverlay?.()
+                    clearOverlay = null
+                    break
             }
         }
     })
@@ -108,7 +130,7 @@ function startAutoFullScreen(): void {
         candidatesFilter(fullScreenCandidates)
     })
 
-    const allCandidate = document.querySelectorAll('img, video')
+    const allCandidate = document.querySelectorAll('img, video, canvas')
     for (const image of allCandidate) {
         observer.observe(image)
     }
@@ -125,7 +147,7 @@ function getEntrySize(entry: IntersectionObserverEntry): VisibleInfo {
 
 function setImageFullScreen(imageSrc: string): void {
 
-    isFullScreenState = true
+    fullscreenState = 'on'
 
     const originalBodyStyle = document.body.style.cssText
     document.body.style.cssText = `overflow: hidden !important;`
@@ -154,23 +176,14 @@ function setImageFullScreen(imageSrc: string): void {
     toolsContainer.appendChild(close)
 
     function routateImg(action: 'clockwise' | 'anticlockwise'): void {
-        const rotateState = parseInt(img.getAttribute('rotate-state'))
-        let newRotateState
-        if (action == 'clockwise') {
-            newRotateState = rotateState + 1
-        } else if (action == 'anticlockwise') {
-            newRotateState = rotateState - 1
-        }
+        const rotateState = parseInt(img.getAttribute('rotate-state') ?? '0')
+        const newRotateState = action === 'clockwise' ? rotateState + 1 : rotateState - 1
         img.style.transform = `rotate(calc(${newRotateState} * 90deg))`
         img.setAttribute('rotate-state', newRotateState.toString())
 
-        if (newRotateState % 2 !== 0) {
-            img.classList.remove('horizontal')
-            img.classList.add('vertical')
-        } else {
-            img.classList.remove('vertical')
-            img.classList.add('horizontal')
-        }
+        // if newRotateState is even, add 'horizontal', remove 'vertical'
+        img.classList.toggle('horizontal', newRotateState % 2 === 0)
+        img.classList.toggle('vertical', newRotateState % 2 === 0)
     }
 
     // routate
@@ -207,19 +220,68 @@ function setImageFullScreen(imageSrc: string): void {
     // close callback
     const closeImage = (): void => {
         imageContainer.remove()
-        isFullScreenState = false
+        fullscreenState = 'off'
         document.body.style.cssText = originalBodyStyle
     }
 
-    exitFullScreen = closeImage
+    exitFullscreen = closeImage
 
     close.onclick = closeImage
 }
 
 
+// TODO:
+function setCanvasFullScreen(target: HTMLCanvasElement): void {
+
+    fullscreenState = 'on'
+
+    const styleNode = createStyleNode(`
+        :not(#for-higher-specificity) {
+            visibility: hidden !important;
+            overflow: visible !important;one !important;
+            perspective: none !important;
+            filter: none !important;
+        }
+        html { overflow: hidden !important; }
+    `)
+
+    const CSSRuleMap: Map<string, string> = new Map([
+        ['position', 'fixed !important'],
+        ['top', '0px !important'],
+        ['left', '0px !important'],
+        ['width', '100vw !important'],
+        ['height', '100vh !important'],
+        ['zIndex', '99999 !important'],
+        ['visibility', 'visible !important'],
+        ['margin', '0 !important'],
+        ['padding', '0 !important'],
+        ['opacity', '1 !important'],
+    ])
+
+    const originalStyleMap = new Map()
+    for (const styleName of target.style) {
+        const priority = target.style.getPropertyPriority(styleName) === 'important' ? '!important' : ''
+        originalStyleMap.set(styleName, `${target.style.getPropertyValue(styleName)} ${priority}`.trim())
+    }
+
+    const fullscreenCssText = concatCSSRuleMap(CSSRuleMap)
+    target.style.cssText = fullscreenCssText
+
+    exitFullscreen = (): void => {
+
+        target.style.cssText = concatCSSRuleMap(originalStyleMap)
+        target.removeAttribute('controls')
+        styleNode.remove()
+
+        fullscreenState = 'off'
+    }
+
+}
+
+
 function setVideoFullScreen(target: HTMLVideoElement): void {
 
-    isFullScreenState = true
+    fullscreenState = 'on'
 
     const styleNode = createStyleNode(`
         /* same to: * { ... } */
@@ -244,7 +306,7 @@ function setVideoFullScreen(target: HTMLVideoElement): void {
 
     const originalStyleMap = new Map()
     for (const styleName of target.style) {
-        const priority =  target.style.getPropertyPriority(styleName) === 'important' ? '!important' : ''
+        const priority = target.style.getPropertyPriority(styleName) === 'important' ? '!important' : ''
         originalStyleMap.set(styleName, `${target.style.getPropertyValue(styleName)} ${priority}`.trim())
     }
 
@@ -292,12 +354,12 @@ function setVideoFullScreen(target: HTMLVideoElement): void {
 
 
     if (target.getAttribute('controls') !== null) {
-        exitFullScreen = (): void => {
+        exitFullscreen = (): void => {
             target.style.cssText = concatCSSRuleMap(originalStyleMap)
             ob.disconnect()
             // target.style.cssText = originalStyle
             styleNode.remove()
-            isFullScreenState = false
+            fullscreenState = 'off'
         }
     } else {
         target.setAttribute('controls', '')
@@ -330,7 +392,7 @@ function setVideoFullScreen(target: HTMLVideoElement): void {
 
         runInPageContext(hookMediaPrototype)
 
-        exitFullScreen = (): void => {
+        exitFullscreen = (): void => {
             // this looks like a callback but it runs synchronously
             // so the hooked removeAttribute method get recovered before
             // target.removeAttribute('controls') remove controls
@@ -347,7 +409,7 @@ function setVideoFullScreen(target: HTMLVideoElement): void {
             document.removeEventListener('click', handleClick, { capture: true })
             document.removeEventListener('keyup', handleSpacePress)
 
-            isFullScreenState = false
+            fullscreenState = 'off'
         }
     }
 }
@@ -355,7 +417,7 @@ function setVideoFullScreen(target: HTMLVideoElement): void {
 
 function createCandidateOverlay(candidateElements: CandidateElement[]): void {
 
-    document.querySelector('overlay-root.--auto-fullscreen-overlay-root')?.remove()
+    fullscreenState = 'select'
 
     const overlayRoot = document.createElement('overlay-root')
     overlayRoot.className = '--auto-fullscreen-overlay-root'
@@ -388,8 +450,18 @@ function createCandidateOverlay(candidateElements: CandidateElement[]): void {
                 overlayRoot.remove()
                 setVideoFullScreen(elem)
             }
+        } else if (elem instanceof HTMLCanvasElement) {
+            candidateOverlay.onclick = (): void => {
+                overlayRoot.remove()
+                setCanvasFullScreen(elem)
+            }
         }
     })
+
+    clearOverlay = (): void => {
+        overlayRoot.remove()
+        fullscreenState = 'off'
+    }
 }
 
 
@@ -410,6 +482,8 @@ function candidatesFilter(candidates: FullScreenCandidate[]): void {
             setImageFullScreen(target.src)
         } else if (target instanceof HTMLVideoElement) {
             setVideoFullScreen(target)
+        } else if (target instanceof HTMLCanvasElement) {
+            setCanvasFullScreen(target)
         }
     } else {
         createCandidateOverlay(candidateElements)
@@ -490,7 +564,7 @@ function waitForVisible(): Promise<void> {
  * run as injected script element
  * hook the play/pause method to prevent the website's player behavior
  */
-function hookMediaPrototype() {
+function hookMediaPrototype(): void {
     const mediaProto = HTMLMediaElement.prototype
 
     const playNative = mediaProto.play;
@@ -509,7 +583,7 @@ function hookMediaPrototype() {
         else removeAttributeNative.call(this, attr)
     }
 
-    const setNative = Object.getOwnPropertyDescriptor(mediaProto, 'controls').set
+    const setNative = Object.getOwnPropertyDescriptor(mediaProto, 'controls')?.set
     Object.defineProperty(mediaProto, 'controls', { set: function () { return } });
 
     (window as any)['___$recoverHook___'] = (): void => {

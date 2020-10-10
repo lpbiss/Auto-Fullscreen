@@ -36,22 +36,22 @@ class ConfigForm extends React.Component<Config, ConfigFormState> {
 
     handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
         event.preventDefault()
-        const newConfig: Partial<Config> = {
-            widthLowerBound: this.widthLowerBoundInput.current.valueAsNumber,
-            heightLowerBound: this.heightLowerBoundInput.current.valueAsNumber,
-            areaIgnorePercentage: this.areaIgnorePercentageInput.current.valueAsNumber,
-            hotKey: this.hotKeyInput.current.value,
-            hotkeyCtrl: this.hotkeyCtrlInput.current.checked,
-            hotkeyAlt: this.hotkeyAltInput.current.checked,
-        }
-        chrome.storage.local.set(newConfig)
+        
+        chrome.storage.local.set({
+            widthLowerBound: this.widthLowerBoundInput.current!.valueAsNumber,
+            heightLowerBound: this.heightLowerBoundInput.current!.valueAsNumber,
+            areaIgnorePercentage: this.areaIgnorePercentageInput.current!.valueAsNumber,
+            hotKey: this.hotKeyInput.current!.value,
+            hotkeyCtrl: this.hotkeyCtrlInput.current!.checked,
+            hotkeyAlt: this.hotkeyAltInput.current!.checked,
+        })
     }
 
     handleAddMatch = (event: React.FormEvent<HTMLFormElement>): void => {
         event.preventDefault()
 
-        const match = this.matchRef.current.value
-        const selector = this.selectorRef.current.value
+        const match = this.matchRef.current!.value
+        const selector = this.selectorRef.current!.value
         let newMatch: matchDetail
 
         if (selector !== '') {
@@ -63,7 +63,6 @@ class ConfigForm extends React.Component<Config, ConfigFormState> {
         this.setState({
             matchList: [...this.state.matchList, newMatch]
         }, this.syncMatchList)
-
     }
 
     handleDel = (index: number): void => {

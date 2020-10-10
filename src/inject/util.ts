@@ -27,5 +27,5 @@ export function concatCSSRuleMap(CSSRuleMap: Map<string, string>): string {
     CSSRuleMap.forEach((val, ruleName) => {
         res += `${ruleName}: ${val};`
     })
-    return `${res}`
+    return res
 }

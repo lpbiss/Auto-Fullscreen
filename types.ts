@@ -4,7 +4,7 @@ type VisibleInfo = {
     areaVisible: number;
 }
 
-type CandidateElement = HTMLImageElement | HTMLVideoElement
+type CandidateElement = HTMLImageElement | HTMLVideoElement | HTMLCanvasElement
 
 type FullScreenCandidate = {
     target: CandidateElement;
