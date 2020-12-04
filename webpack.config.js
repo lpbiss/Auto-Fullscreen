@@ -34,16 +34,12 @@ module.exports = {
             },
             {
                 test: /\.(png|jpg)/,
-                use: ['file-loader?name=img/[name].[hash:6].[ext]']
+                use: 'file-loader?name=img/[name].[hash:6].[ext]'
             },
             {
                 test: /\.ts(x?)$/,
                 exclude: /node_modules/,
-                use: [
-                    {
-                        loader: "ts-loader"
-                    }
-                ]
+                use: "ts-loader"
             },
             {
                 test: /\.svg$/,
@@ -56,7 +52,7 @@ module.exports = {
             patterns: [
                 { from: './src/options.html', to: './' },
                 { from: './src/manifest.json', to: './' },
-                { from: './src/icon/*', to: './icon', flatten: true}
+                { from: './src/icon/*', to: './icon', flatten: true }
             ],
         }),
     ]

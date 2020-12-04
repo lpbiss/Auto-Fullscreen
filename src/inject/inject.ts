@@ -8,6 +8,7 @@ import fitViewportSVG from './resource/fit-viewport.svg'
 // import zoomOutSVG from './resource/zoom-out.svg'
 
 import { createStyleNode, runInPageContext, concatCSSRuleMap } from './util'
+import { defaultConfig } from "../global";
 
 /* 
     Todos:
@@ -16,81 +17,244 @@ import { createStyleNode, runInPageContext, concatCSSRuleMap } from './util'
     3. detect iframe elements
 */
 
-const configKeys: Array<keyof Config> = [
-    'widthLowerBound',
-    'heightLowerBound',
-    'areaIgnorePercentage',
-    'hotkeyCtrl',
-    'hotkeyAlt',
-    'hotKey',
-    'hotkeyEnable',
-    'matchList',
-]
 
-let config: Config
 
-/** 
- * This variable will be set to true when
- * setVideoFullScreen or setImageFullScreen is called.
- * TODO: change to: on | off | select
- */
-let fullscreenState: 'on' | 'off' | 'select' = 'off'
-/** this function should set isFullScreenState to false */
-let exitFullscreen: (() => void) | null
-let clearOverlay: (() => void) | null
+const stateHandler = new class {
+    config: Config
+    state: 'on' | 'off'
+    exitSteps: Function[]
 
-chrome.storage.local.get(configKeys, function (result) {
+    constructor() {
+        this.config = defaultConfig
+        this.state = 'off'
+        this.exitSteps = []
+    }
 
-    config = result as Config
+    registerExitStep = (step: Function) => {
+        this.exitSteps.push(step)
+        this.state = 'on'
+    }
+
+    exit = () => {
+        for (const step of this.exitSteps) step()
+        this.exitSteps = []
+        this.state = 'off'
+    }
+}
+
+
+const fullscreener = new class {
+
+    start = async () => {
+
+        stateHandler.exit()
+
+        const allTargets = await this.getAllTargetElements()
+        const remain = this.filterOut(allTargets)
+
+        let target: TargetElement | 'canceled'
+        if (remain.length === 0)
+            target = 'canceled'
+        else if (remain.length === 1)
+            target = remain[0]
+        else
+            target = await this.waitForManualSelection(remain)
+
+
+        if (target instanceof HTMLImageElement) {
+            new FullscreenImage(target)
+        } else if (target instanceof HTMLVideoElement) {
+            setVideoFullScreen(target)
+        } else if (target instanceof HTMLCanvasElement) {
+            new FullscreenCanvas(target)
+        } else {
+            stateHandler.exit()
+        }
+    }
+
+    getEntrySize = (entry: IntersectionObserverEntry): VisibleInfo => {
+        const widthVisible = entry.intersectionRect.right - entry.intersectionRect.left
+        const heightVisible = entry.intersectionRect.bottom - entry.intersectionRect.top
+        const areaVisible = widthVisible * heightVisible
+        return { widthVisible, heightVisible, areaVisible }
+    }
+
+    getAllTargetElements = (): Promise<FullScreenTarget[]> => {
+        return new Promise(resolve => {
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                const fullScreenTargets: FullScreenTarget[] = []
+
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) return
+
+                    const entrySize = this.getEntrySize(entry)
+                    if (entrySize.widthVisible <= stateHandler.config.widthLowerBound ||
+                        entrySize.heightVisible <= stateHandler.config.heightLowerBound)
+                        return
+
+                    fullScreenTargets.push({
+                        target: entry.target as TargetElement,
+                        areaVisible: entrySize.areaVisible,
+                    })
+                })
+
+                observer.disconnect()
+                resolve(fullScreenTargets)
+            })
+
+            const allCandidate = document.querySelectorAll('img, video, canvas')
+            for (const image of allCandidate) {
+                observer.observe(image)
+            }
+        })
+    }
+
+    filterOut = (targets: FullScreenTarget[]): TargetElement[] => {
+
+        const res: TargetElement[] = []
+        const areaVisibleMax = Math.max(...targets.map(candidate => candidate.areaVisible))
+
+        targets.forEach(target => {
+            if (target.areaVisible > areaVisibleMax * stateHandler.config.areaIgnorePercentage) {
+                res.push(target.target)
+            }
+        })
+
+        return res
+    }
+
+    waitForManualSelection = async (targetElements: TargetElement[]): Promise<TargetElement | 'canceled'> => {
+        return new Promise(resolve => {
+            const overlayRoot = document.createElement('overlay-root')
+            overlayRoot.className = '--auto-fullscreen-overlay-root'
+            document.body.appendChild(overlayRoot)
+
+            targetElements.forEach(elem => {
+                const targetRect = elem.getBoundingClientRect()
+                const candidateOverlay = document.createElement('target-overlay')
+                overlayRoot.appendChild(candidateOverlay)
+
+                const textSpan = document.createElement('span')
+                textSpan.innerText = 'Click to maximize'
+                candidateOverlay.style.display = 'flex'
+                candidateOverlay.style.justifyContent = 'center'
+                candidateOverlay.style.alignItems = 'center'
+                candidateOverlay.appendChild(textSpan)
+
+                candidateOverlay.style.width = `${targetRect.right - targetRect.left}px`
+                candidateOverlay.style.height = `${targetRect.bottom - targetRect.top}px`
+                candidateOverlay.style.top = `${targetRect.top + window.pageYOffset}px`
+                candidateOverlay.style.left = `${targetRect.left + window.pageXOffset}px`
+
+                candidateOverlay.onclick = () => {
+                    resolve(elem)
+                }
+            })
+
+            stateHandler.registerExitStep(() => {
+                resolve('canceled')
+                overlayRoot.remove()
+            })
+        })
+    }
+}
+
+
+const automation = new class {
+
+    start = async () => {
+        for (const matchDetail of stateHandler.config.matchList) {
+
+            // skip disabled rules
+            if (!matchDetail.isEnabled) continue
+
+            if (location.href.match(matchDetail.match)) {
+                if (matchDetail.selector) {
+                    const target = await this.waitForElement(matchDetail.selector)
+                    if (target instanceof HTMLImageElement) {
+                        new FullscreenImage(target)
+                    } else if (target instanceof HTMLVideoElement) {
+                        setVideoFullScreen(target)
+                    } else if (target instanceof HTMLCanvasElement) {
+                        new FullscreenCanvas(target)
+                    } else {
+                        console.log(`Target element: ${matchDetail.selector} not found!`)
+                    }
+                } else {
+                    await this.waitForDOMLoad()
+                    await this.waitForVisible()
+                    fullscreener.start()
+                }
+
+                break  // only the first match applies
+            }
+        }
+    }
+
+    waitForElement = (selector: string): Promise<TargetElement | false> => {
+        return new Promise(resolve => {
+            let retryCount = 0
+            const handler = setInterval(() => {
+                retryCount += 1
+                if (retryCount === 30) resolve(false)
+                const target = document.querySelector(selector)
+                if (target instanceof HTMLImageElement ||
+                    target instanceof HTMLVideoElement) {
+                    clearInterval(handler)
+                    resolve(target)
+                }
+            }, 1000)
+        })
+    }
+
+    waitForDOMLoad = (): Promise<void> => {
+        return new Promise(resolve => {
+            if (document.readyState == 'complete') {
+                resolve()
+            } else {
+                window.addEventListener('load', () => resolve())
+            }
+        })
+    }
+
+    waitForVisible = (): Promise<void> => {
+        return new Promise(resolve => {
+            if (document.hidden) {
+                document.addEventListener('visibilitychange', () => {
+                    resolve()
+                }, { once: true })
+            } else {
+                resolve()
+            }
+        })
+    }
+
+}
+
+
+
+chrome.storage.local.get(Object.keys(defaultConfig), function (result) {
+
+    stateHandler.config = result as Config
 
     // add hotkey to exit fullscreen
     document.addEventListener('keyup', function (ev) {
-        if (ev.key === config.hotKey &&
-            ev.ctrlKey === config.hotkeyCtrl &&
-            ev.altKey === config.hotkeyAlt) {
-            switch (fullscreenState) {
-                case 'on':
-                    exitFullscreen?.()
-                    exitFullscreen = null
-                    break
-                case 'off':
-                    startAutoFullScreen()
-                    break
-                case 'select':
-                    clearOverlay?.()
-                    clearOverlay = null
-                    break
-            }
+        if (ev.key === stateHandler.config.hotKey &&
+            ev.ctrlKey === stateHandler.config.hotkeyCtrl &&
+            ev.altKey === stateHandler.config.hotkeyAlt) {
+            if (stateHandler.state === 'on') stateHandler.exit()
+            else fullscreener.start()
         } else if (ev.key === 'Escape') {
-            switch (fullscreenState) {
-                case 'on':
-                    exitFullscreen?.()
-                    exitFullscreen = null
-                    break
-                case 'select':
-                    clearOverlay?.()
-                    clearOverlay = null
-                    break
-            }
+            stateHandler.exit()
         }
     })
 
     // when the extension icon being clicked
     chrome.runtime.onMessage.addListener(function (msg: contentScriptMessage) {
         if (msg.action === 'fullscreen') {
-            switch (fullscreenState) {
-                case 'on':
-                    exitFullscreen?.()
-                    exitFullscreen = null
-                    break
-                case 'off':
-                    startAutoFullScreen()
-                    break
-                case 'select':
-                    clearOverlay?.()
-                    clearOverlay = null
-                    break
-            }
+            if (stateHandler.state === 'on') stateHandler.exit()
+            else fullscreener.start()
         }
     })
 
@@ -99,158 +263,111 @@ chrome.storage.local.get(configKeys, function (result) {
         for (const key in changes) {
             (newConfig as any)[key] = changes[key].newValue
         }
-        Object.assign(config, newConfig)
+        Object.assign(stateHandler.config, newConfig)
     })
 
-    startAutomating()
+    automation.start()
 })
 
 
-function startAutoFullScreen(): void {
+class FullscreenImage {
 
-    const observer = new IntersectionObserver(function (entries, observer) {
-        const fullScreenCandidates: FullScreenCandidate[] = []
+    src: string
+    originalBodyStyle: string
 
-        entries.forEach(entry => {
-            if (!entry.isIntersecting) return
+    container = document.createElement('div')
+    img = document.createElement('img')
+    toolsContainer = document.createElement('div')
 
-            const entrySize = getEntrySize(entry)
-            if (entrySize.widthVisible <= config.widthLowerBound ||
-                entrySize.heightVisible <= config.heightLowerBound)
-                return
+    close = FullscreenImage.createSVGNode(closeSVG)
+    routateAnticlockwise = FullscreenImage.createSVGNode(anticlockwiseSVG)
+    routateClockwise = FullscreenImage.createSVGNode(clockwiseSVG)
+    exitFitViewport = FullscreenImage.createSVGNode(exitFitViewportSVG)
+    fitViewport = FullscreenImage.createSVGNode(fitViewportSVG)
 
-            fullScreenCandidates.push({
-                target: entry.target as CandidateElement,
-                areaVisible: entrySize.areaVisible,
-            })
-        })
+    constructor(target: HTMLImageElement | string) {
 
-        observer.disconnect()
+        if (target instanceof HTMLImageElement) this.src = target.src
+        else this.src = target
 
-        candidatesFilter(fullScreenCandidates)
-    })
-
-    const allCandidate = document.querySelectorAll('img, video, canvas')
-    for (const image of allCandidate) {
-        observer.observe(image)
+        this.originalBodyStyle = document.body.style.cssText
+        this.addAttr()
+        this.addEventHandler()
+        this.arrangeDOM()
     }
-}
 
+    addAttr = () => {
+        this.container.className = '--auto-fullscreen-contianer fit-viewport'
 
-function getEntrySize(entry: IntersectionObserverEntry): VisibleInfo {
-    const widthVisible = entry.intersectionRect.right - entry.intersectionRect.left
-    const heightVisible = entry.intersectionRect.bottom - entry.intersectionRect.top
-    const areaVisible = widthVisible * heightVisible
-    return { widthVisible, heightVisible, areaVisible }
-}
+        this.img.className = 'fullscreen-image horizontal'
+        this.img.setAttribute('rotate-state', '0')
+        this.img.src = this.src
 
+        this.toolsContainer.className = '--fullscreen-image-tools-container'
+    }
 
-function setImageFullScreen(imageSrc: string): void {
+    addEventHandler = () => {
+        this.routateAnticlockwise.onclick = (): void => this.routateImg('anticlockwise')
+        this.routateClockwise.onclick = (): void => this.routateImg('clockwise')
 
-    fullscreenState = 'on'
+        // exit fit viewport mode
+        this.exitFitViewport.onclick = (): void => {
+            this.container.classList.remove('fit-viewport')
+            this.container.classList.add('custom-size')
+            this.exitFitViewport.remove()
+            this.toolsContainer.appendChild(this.fitViewport)
+        }
 
-    const originalBodyStyle = document.body.style.cssText
-    document.body.style.cssText = `overflow: hidden !important;`
+        // fit viewport mode
+        this.fitViewport.onclick = (): void => {
+            this.container.classList.add('fit-viewport')
+            this.container.classList.remove('custom-size')
+            this.fitViewport.remove()
+            this.toolsContainer.appendChild(this.exitFitViewport)
+        }
 
-    const imageContainer = document.createElement('div')
-    imageContainer.className = '--auto-fullscreen-image-contianer fit-viewport'
-    document.body.appendChild(imageContainer)
+        const closeImage = () => this.container.remove()
+        stateHandler.registerExitStep(closeImage)
+        this.close.onclick = stateHandler.exit
+    }
 
-    const img = document.createElement('img')
-    img.className = 'fullscreen-image horizontal'
-    img.setAttribute('rotate-state', '0')
-    img.src = imageSrc
-    imageContainer.appendChild(img)
+    arrangeDOM = () => {
+        document.body.appendChild(this.container)
 
-    const toolsContainer = document.createElement('div')
-    toolsContainer.className = '--fullscreen-image-tools-container'
-    imageContainer.appendChild(toolsContainer)
+        this.container.appendChild(this.img)
+        this.container.appendChild(this.toolsContainer)
 
-    function stringToSVG(svgString: string): SVGElement {
+        this.toolsContainer.appendChild(this.close)
+        this.toolsContainer.appendChild(this.routateAnticlockwise)
+        this.toolsContainer.appendChild(this.routateClockwise)
+        this.toolsContainer.appendChild(this.exitFitViewport)
+    }
+
+    static createSVGNode(svgString: string): SVGElement {
         const template = document.createElement('template')
         template.innerHTML = svgString
         return template.content.firstChild as SVGElement
     }
 
-    const close = stringToSVG(closeSVG)
-    toolsContainer.appendChild(close)
-
-    function routateImg(action: 'clockwise' | 'anticlockwise'): void {
-        const rotateState = parseInt(img.getAttribute('rotate-state') ?? '0')
+    routateImg = (action: 'clockwise' | 'anticlockwise') => {
+        const rotateState = parseInt(this.img.getAttribute('rotate-state') ?? '0')
         const newRotateState = action === 'clockwise' ? rotateState + 1 : rotateState - 1
-        img.style.transform = `rotate(calc(${newRotateState} * 90deg))`
-        img.setAttribute('rotate-state', newRotateState.toString())
+        this.img.style.transform = `rotate(calc(${newRotateState} * 90deg))`
+        this.img.setAttribute('rotate-state', newRotateState.toString())
 
         // if newRotateState is even, add 'horizontal', remove 'vertical'
-        img.classList.toggle('horizontal', newRotateState % 2 === 0)
-        img.classList.toggle('vertical', newRotateState % 2 === 0)
+        this.img.classList.toggle('horizontal', newRotateState % 2 === 0)
+        this.img.classList.toggle('vertical', newRotateState % 2 === 1)
     }
 
-    // routate
-    const routateAnticlockwise = stringToSVG(anticlockwiseSVG)
-    routateAnticlockwise.onclick = (): void => routateImg('anticlockwise')
-    toolsContainer.appendChild(routateAnticlockwise)
-
-    const routateClockwise = stringToSVG(clockwiseSVG)
-    routateClockwise.onclick = (): void => routateImg('clockwise')
-    toolsContainer.appendChild(routateClockwise)
-
-
-    // exit fit viewport mode
-    const exitFitViewport = stringToSVG(exitFitViewportSVG)
-    exitFitViewport.onclick = (): void => {
-        imageContainer.classList.remove('fit-viewport')
-        imageContainer.classList.add('custom-size')
-        exitFitViewport.remove()
-        toolsContainer.appendChild(fitViewport)
-    }
-    toolsContainer.appendChild(exitFitViewport)
-
-
-    // fit viewport mode
-    const fitViewport = stringToSVG(fitViewportSVG)
-    fitViewport.onclick = (): void => {
-        imageContainer.classList.add('fit-viewport')
-        imageContainer.classList.remove('custom-size')
-        fitViewport.remove()
-        toolsContainer.appendChild(exitFitViewport)
-    }
-
-
-    // close callback
-    const closeImage = (): void => {
-        imageContainer.remove()
-        fullscreenState = 'off'
-        document.body.style.cssText = originalBodyStyle
-    }
-
-    exitFullscreen = closeImage
-
-    close.onclick = closeImage
 }
 
 
-// TODO:
-function setCanvasFullScreen(target: HTMLCanvasElement): void {
+class FullscreenCanvas {
+    target: HTMLCanvasElement | HTMLVideoElement
 
-    fullscreenState = 'on'
-
-    const styleNode = createStyleNode(`
-        :not(#for-higher-specificity) {
-            visibility: hidden !important;
-            overflow: visible !important;one !important;
-            perspective: none !important;
-            filter: none !important;
-        }
-        html { overflow: hidden !important; }
-    `)
-
-    const CSSRuleMap: Map<string, string> = new Map([
+    fullscreenRules: Map<string, string> = new Map([
         ['position', 'fixed !important'],
-        ['top', '0px !important'],
-        ['left', '0px !important'],
-        ['width', '100vw !important'],
-        ['height', '100vh !important'],
         ['zIndex', '99999 !important'],
         ['visibility', 'visible !important'],
         ['margin', '0 !important'],
@@ -258,50 +375,91 @@ function setCanvasFullScreen(target: HTMLCanvasElement): void {
         ['opacity', '1 !important'],
     ])
 
-    const originalStyleMap = new Map()
-    for (const styleName of target.style) {
-        const priority = target.style.getPropertyPriority(styleName) === 'important' ? '!important' : ''
-        originalStyleMap.set(styleName, `${target.style.getPropertyValue(styleName)} ${priority}`.trim())
+    originalTargetStyle: Map<string, string> = new Map()
+
+    constructor(target: HTMLCanvasElement | HTMLVideoElement) {
+        this.target = target
+        
+        // store original style
+        for (const styleName of this.target.style) {
+            const priority = this.target.style.getPropertyPriority(styleName) === 'important' ? '!important' : ''
+            this.originalTargetStyle.set(styleName, `${this.target.style.getPropertyValue(styleName)} ${priority}`.trim())
+        }
+        stateHandler.registerExitStep(() => {
+            this.target.style.cssText = concatCSSRuleMap(this.originalTargetStyle)
+        })
+
+        // set fullscreen rules
+        const { width, height, top, left } = this.computeFullscreenSize(this.target.width, this.target.height)
+        this.fullscreenRules.set('width', `${width}px !important`)
+        this.fullscreenRules.set('height', `${height}px !important`)
+        this.fullscreenRules.set('top', `${top}px !important`)
+        this.fullscreenRules.set('left', `${left}px !important`)
+
+        this.target.style.cssText = concatCSSRuleMap(this.fullscreenRules)
+
+        this.hideRestElements()
+
     }
 
-    const fullscreenCssText = concatCSSRuleMap(CSSRuleMap)
-    target.style.cssText = fullscreenCssText
+    hideRestElements = () => {
+        const styleNode = createStyleNode(`
+            :not(#for-higher-specificity) {
+                visibility: hidden !important;
+                overflow: visible !important;
+                transform: none !important;
+                perspective: none !important;
+                filter: none !important;
+            }
 
-    exitFullscreen = (): void => {
-
-        target.style.cssText = concatCSSRuleMap(originalStyleMap)
-        target.removeAttribute('controls')
-        styleNode.remove()
-
-        fullscreenState = 'off'
+            html:not(#for-higher-specificity) {
+                overflow: hidden !important;
+            }
+        `)
+        stateHandler.registerExitStep(() => {
+            styleNode.remove()
+        })
     }
 
+    computeFullscreenSize(originalWidth: number, originalHeidgt: number) {
+        const canvasRatio = originalWidth / originalHeidgt
+        const screenRatio = window.innerWidth / window.innerHeight
+        if (canvasRatio > screenRatio) {
+            const height = window.innerWidth / canvasRatio
+            return {
+                width: window.innerWidth,
+                height,
+                top: (window.innerHeight - height) / 2,
+                left: 0
+            }
+        }
+        else {
+            const width = window.innerHeight * canvasRatio
+            return {
+                width,
+                height: window.innerHeight,
+                top: 0,
+                left: (window.innerWidth - width) / 2,
+            }
+        }
+    }
 }
 
-
 function setVideoFullScreen(target: HTMLVideoElement): void {
-
-    fullscreenState = 'on'
 
     const styleNode = createStyleNode(`
         /* same to: * { ... } */
         :not(#for-higher-specificity) {
             visibility: hidden !important;
             overflow: visible !important;
-            /*
-                see https://developer.mozilla.org/en-US/docs/Web/CSS/position
-                for why set transform, perspective, filter to none
-            */
             transform: none !important;
             perspective: none !important;
             filter: none !important;
         }
 
-        /*
-            prevent scrolling in fullscreen mode
-            using inline css would be more reliable, but at risk of being overrided
-        */
-        html { overflow: hidden !important; }
+        html:not(#for-higher-specificity) {
+            overflow: hidden !important;
+        }
     `)
 
     const originalStyleMap = new Map()
@@ -354,13 +512,11 @@ function setVideoFullScreen(target: HTMLVideoElement): void {
 
 
     if (target.getAttribute('controls') !== null) {
-        exitFullscreen = (): void => {
+        stateHandler.registerExitStep(() => {
             target.style.cssText = concatCSSRuleMap(originalStyleMap)
             ob.disconnect()
-            // target.style.cssText = originalStyle
             styleNode.remove()
-            fullscreenState = 'off'
-        }
+        })
     } else {
         target.setAttribute('controls', '')
 
@@ -372,8 +528,6 @@ function setVideoFullScreen(target: HTMLVideoElement): void {
                 if (hookedVideo.paused) hookedVideo.play('fullscreen')
                 else hookedVideo.pause('fullscreen')
                 ev.preventDefault()
-                ev.stopPropagation()
-                ev.stopImmediatePropagation()
             }
         }
 
@@ -382,8 +536,6 @@ function setVideoFullScreen(target: HTMLVideoElement): void {
                 if (hookedVideo.paused) hookedVideo.play('fullscreen')
                 else hookedVideo.pause('fullscreen')
                 ev.preventDefault()
-                ev.stopPropagation()
-                ev.stopImmediatePropagation()
             }
         }
 
@@ -392,7 +544,7 @@ function setVideoFullScreen(target: HTMLVideoElement): void {
 
         runInPageContext(hookMediaPrototype)
 
-        exitFullscreen = (): void => {
+        stateHandler.registerExitStep(() => {
             // this looks like a callback but it runs synchronously
             // so the hooked removeAttribute method get recovered before
             // target.removeAttribute('controls') remove controls
@@ -408,161 +560,14 @@ function setVideoFullScreen(target: HTMLVideoElement): void {
 
             document.removeEventListener('click', handleClick, { capture: true })
             document.removeEventListener('keyup', handleSpacePress)
-
-            fullscreenState = 'off'
-        }
+        })
     }
-}
-
-
-function createCandidateOverlay(candidateElements: CandidateElement[]): void {
-
-    fullscreenState = 'select'
-
-    const overlayRoot = document.createElement('overlay-root')
-    overlayRoot.className = '--auto-fullscreen-overlay-root'
-    document.body.appendChild(overlayRoot)
-
-    candidateElements.forEach(elem => {
-        const targetRect = elem.getBoundingClientRect()
-        const candidateOverlay = document.createElement('candidate-overlay')
-        overlayRoot.appendChild(candidateOverlay)
-
-        const textSpan = document.createElement('span')
-        textSpan.innerText = 'Click to maximize'
-        candidateOverlay.style.display = 'flex'
-        candidateOverlay.style.justifyContent = 'center'
-        candidateOverlay.style.alignItems = 'center'
-        candidateOverlay.appendChild(textSpan)
-
-        candidateOverlay.style.width = `${targetRect.right - targetRect.left}px`
-        candidateOverlay.style.height = `${targetRect.bottom - targetRect.top}px`
-        candidateOverlay.style.top = `${targetRect.top + window.pageYOffset}px`
-        candidateOverlay.style.left = `${targetRect.left + window.pageXOffset}px`
-
-        if (elem instanceof HTMLImageElement) {
-            candidateOverlay.onclick = (): void => {
-                overlayRoot.remove()
-                setImageFullScreen(elem.src)
-            }
-        } else if (elem instanceof HTMLVideoElement) {
-            candidateOverlay.onclick = (): void => {
-                overlayRoot.remove()
-                setVideoFullScreen(elem)
-            }
-        } else if (elem instanceof HTMLCanvasElement) {
-            candidateOverlay.onclick = (): void => {
-                overlayRoot.remove()
-                setCanvasFullScreen(elem)
-            }
-        }
-    })
-
-    clearOverlay = (): void => {
-        overlayRoot.remove()
-        fullscreenState = 'off'
-    }
-}
-
-
-function candidatesFilter(candidates: FullScreenCandidate[]): void {
-
-    const candidateElements: CandidateElement[] = []
-    const areaVisibleMax = Math.max(...candidates.map(candidate => candidate.areaVisible))
-
-    candidates.forEach(candidate => {
-        if (candidate.areaVisible > areaVisibleMax * config.areaIgnorePercentage) {
-            candidateElements.push(candidate.target)
-        }
-    })
-
-    if (candidates.length === 1) {
-        const target = candidates[0].target
-        if (target instanceof HTMLImageElement) {
-            setImageFullScreen(target.src)
-        } else if (target instanceof HTMLVideoElement) {
-            setVideoFullScreen(target)
-        } else if (target instanceof HTMLCanvasElement) {
-            setCanvasFullScreen(target)
-        }
-    } else {
-        createCandidateOverlay(candidateElements)
-    }
-}
-
-
-async function startAutomating(): Promise<void> {
-
-    for (const matchDetail of config.matchList) {
-
-        // skip disabled rules
-        if (!matchDetail.isEnabled) continue
-
-        if (location.href.match(matchDetail.match)) {
-            if (matchDetail.selector) {
-                const target = await waitForElement(matchDetail.selector)
-                if (target === false) {
-                    console.log(`Target element: ${matchDetail.selector} not found!`)
-                } else if (target instanceof HTMLImageElement) {
-                    setImageFullScreen(target.src)
-                } else if (target instanceof HTMLVideoElement) {
-                    setVideoFullScreen(target)
-                }
-            } else {
-                await waitForLoad()
-                await waitForVisible()
-                startAutoFullScreen()
-            }
-            break  // only the first match applies
-        }
-    }
-}
-
-
-function waitForElement(selector: string): Promise<CandidateElement | false> {
-    return new Promise(resolve => {
-        let retryCount = 0
-        const handler = setInterval(() => {
-            retryCount += 1
-            if (retryCount === 30) resolve(false)
-            const target = document.querySelector(selector)
-            if (target instanceof HTMLImageElement ||
-                target instanceof HTMLVideoElement) {
-                clearInterval(handler)
-                resolve(target)
-            }
-        }, 1000)
-    })
-}
-
-
-function waitForLoad(): Promise<void> {
-    return new Promise(resolve => {
-        if (document.readyState == 'complete') {
-            resolve()
-        } else {
-            window.addEventListener('load', () => resolve())
-        }
-    })
-}
-
-
-function waitForVisible(): Promise<void> {
-    return new Promise(resolve => {
-        if (document.hidden) {
-            document.addEventListener('visibilitychange', () => {
-                resolve()
-            }, { once: true })
-        } else {
-            resolve()
-        }
-    })
 }
 
 
 /**
- * run as injected script element
- * hook the play/pause method to prevent the website's player behavior
+ * run as injected <script> element
+ * hook the play/pause method to prevent conflict
  */
 function hookMediaPrototype(): void {
     const mediaProto = HTMLMediaElement.prototype

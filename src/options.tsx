@@ -2,8 +2,13 @@ import * as React from "react"
 import * as ReactDOM from "react-dom"
 import './options.scss'
 
+import { defaultConfig } from "./global";
+
+// TODO: reset
+
+
 type ConfigFormState = {
-    matchList: matchDetail[];
+    matchList: MatchDetail[];
 }
 
 class ConfigForm extends React.Component<Config, ConfigFormState> {
@@ -52,7 +57,7 @@ class ConfigForm extends React.Component<Config, ConfigFormState> {
 
         const match = this.matchRef.current!.value
         const selector = this.selectorRef.current!.value
-        let newMatch: matchDetail
+        let newMatch: MatchDetail
 
         if (selector !== '') {
             newMatch = { match, selector, isEnabled: true }
@@ -193,7 +198,7 @@ function Title({ text }: { text: string }): JSX.Element {
 }
 
 type MatchListProps = {
-    list: matchDetail[];
+    list: MatchDetail[];
     handleDel: (index: number) => void;
     toggleEnableState: (index: number) => void;
 }
@@ -220,19 +225,7 @@ function MatchList(props: MatchListProps): JSX.Element {
 }
 
 
-const configKeys: Array<keyof Config> = [
-    'widthLowerBound',
-    'heightLowerBound',
-    'areaIgnorePercentage',
-    'hotkeyCtrl',
-    'hotkeyAlt',
-    'hotKey',
-    'hotkeyEnable',
-    'matchList',
-]
-
-
-chrome.storage.local.get(configKeys, function (result) {
+chrome.storage.local.get(Object.keys(defaultConfig), function (result) {
     ReactDOM.render(
         <ConfigForm {...(result as Config)} />,
         document.getElementById("root")

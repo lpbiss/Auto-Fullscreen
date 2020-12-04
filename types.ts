@@ -4,14 +4,14 @@ type VisibleInfo = {
     areaVisible: number;
 }
 
-type CandidateElement = HTMLImageElement | HTMLVideoElement | HTMLCanvasElement
+type TargetElement = HTMLImageElement | HTMLVideoElement | HTMLCanvasElement
 
-type FullScreenCandidate = {
-    target: CandidateElement;
+type FullScreenTarget = {
+    target: TargetElement;
     areaVisible: number;
 }
 
-type matchDetail = {
+type MatchDetail = {
     match: string;
     selector?: string;
     isEnabled: boolean;
@@ -42,5 +42,5 @@ type Config = {
     hotkeyAlt: boolean;
     hotKey: string;
     hotkeyEnable: boolean;
-    matchList: matchDetail[];
+    matchList: MatchDetail[];
 }
