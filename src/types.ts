@@ -1,3 +1,13 @@
+type OverlayDetail = {
+    width: number;
+    height: number;
+    left: number;
+    top: number;
+    text: string;
+    target: HTMLElement;
+    onClick: (ev: MouseEvent) => void;
+}
+
 type VisibleInfo = {
     widthVisible: number;
     heightVisible: number;

@@ -7,7 +7,7 @@ import fitViewportSVG from './resource/fit-viewport.svg'
 // import zoomInSVG from './resource/zoom-in.svg'
 // import zoomOutSVG from './resource/zoom-out.svg'
 
-import { createStyleNode, runInPageContext, concatCSSRuleMap } from './util'
+import { appendStyleNode, runInPageContext, concatCSSRuleMap } from './util'
 import { defaultConfig } from "../global";
 
 /* 
@@ -124,39 +124,185 @@ const fullscreener = new class {
         return res
     }
 
-    waitForManualSelection = async (targetElements: TargetElement[]): Promise<TargetElement | 'canceled'> => {
+    waitForManualSelection = (targetElements: TargetElement[]): Promise<TargetElement | 'canceled'> => {
         return new Promise(resolve => {
             const overlayRoot = document.createElement('overlay-root')
             overlayRoot.className = '--auto-fullscreen-overlay-root'
             document.body.appendChild(overlayRoot)
 
-            targetElements.forEach(elem => {
-                const targetRect = elem.getBoundingClientRect()
-                const candidateOverlay = document.createElement('target-overlay')
-                overlayRoot.appendChild(candidateOverlay)
-
-                const textSpan = document.createElement('span')
-                textSpan.innerText = 'Click to maximize'
-                candidateOverlay.style.display = 'flex'
-                candidateOverlay.style.justifyContent = 'center'
-                candidateOverlay.style.alignItems = 'center'
-                candidateOverlay.appendChild(textSpan)
-
-                candidateOverlay.style.width = `${targetRect.right - targetRect.left}px`
-                candidateOverlay.style.height = `${targetRect.bottom - targetRect.top}px`
-                candidateOverlay.style.top = `${targetRect.top + window.pageYOffset}px`
-                candidateOverlay.style.left = `${targetRect.left + window.pageXOffset}px`
-
-                candidateOverlay.onclick = () => {
-                    resolve(elem)
+            const overlayDetails: OverlayDetail[] = targetElements.map(el => {
+                const targetRect = el.getBoundingClientRect()
+                return {
+                    width: targetRect.right - targetRect.left,
+                    height: targetRect.bottom - targetRect.top,
+                    top: targetRect.top + window.pageYOffset,
+                    left: targetRect.left + window.pageXOffset,
+                    text: this.createOverlayText(el),
+                    target: el,
+                    onClick: () => { resolve(el) },
                 }
             })
+
+            const filtered = this.overlapOverlayFilter(overlayDetails).map(this.createOverlay)
+            if (filtered.length === 1)
+                resolve(filtered[0] as TargetElement)
+            else
+                filtered.forEach(overlay => {
+                    overlayRoot.appendChild(overlay)
+                })
+
 
             stateHandler.registerExitStep(() => {
                 resolve('canceled')
                 overlayRoot.remove()
             })
         })
+    }
+
+    createOverlay = (detail: OverlayDetail): HTMLElement => {
+        const overlay = document.createElement('target-overlay')
+        overlay.innerText = detail.text
+        overlay.style.width = `${detail.width}px`
+        overlay.style.height = `${detail.height}px`
+        overlay.style.left = `${detail.left}px`
+        overlay.style.top = `${detail.top}px`
+        overlay.onclick = detail.onClick
+        return overlay
+    }
+
+    createOverlayText = (el: TargetElement): string => {
+        const res: string[] = ['Click to maximize']
+        if (el instanceof HTMLImageElement) {
+            res.push(el.src)
+        } else if (el instanceof HTMLVideoElement) {
+            res.push(el.src)
+        }
+
+        return res.join('\n')
+    }
+
+    /**
+     * If some elements' overlay cover each other completely,
+     * those with lower z-index get filtered out.
+     * See resolveOverLap() for detail.
+     */
+    overlapOverlayFilter = (details: OverlayDetail[]): OverlayDetail[] => {
+
+        const res: Set<OverlayDetail> = new Set(details)
+        const toDel: Set<OverlayDetail> = new Set()
+
+        const isOverlap = (d1: OverlayDetail, d2: OverlayDetail): Boolean => {
+            if (d1 === d2) return false
+            if (d1.top > d2.top) [d2, d1] = [d1, d2]
+            // check if d1 covers d2
+            if (d1.left <= d2.left &&
+                d1.top + d1.height >= d2.top + d2.height &&
+                d1.left + d1.width >= d2.left + d2.width)
+                return true
+            else return false
+        }
+
+        for (const d1 of res) {
+            for (const d2 of res) {
+                if (isOverlap(d1, d2)) {
+                    toDel.add(this.resolveOverLap(d1, d2) === d1 ? d2 : d1)
+                }
+            }
+        }
+
+        for (const d of toDel) res.delete(d)
+
+        return Array.from(res)
+    }
+
+
+    /** return the overlay to keep */
+    resolveOverLap = (d1: OverlayDetail, d2: OverlayDetail): OverlayDetail => {
+
+        const getRootPath = (node: HTMLElement, root: HTMLElement): HTMLElement[] => {
+            const res: HTMLElement[] = []
+            let cur: HTMLElement | null = node
+            while (cur !== root && cur !== null) {
+                res.push(cur)
+                cur = cur.parentElement
+            }
+            return res
+        }
+
+        const root = this.getNearestCommonAncestor(d1.target, d2.target)
+        if (root === null) throw new Error('getNearestCommonAncestor return null')
+
+        const path1 = getRootPath(d1.target, root)
+        const path2 = getRootPath(d2.target, root)
+
+        const len1 = path1.length
+        const len2 = path2.length
+        let i = 1
+        // Check z-index from root all the way to d1.target and d2.target
+        while (i <= len1 && i <= len2) {
+            const d1Parent = path1[len1 - i]
+            const d2Parent = path2[len2 - i]
+
+            const d1Style = getComputedStyle(d1Parent)
+            const d2Style = getComputedStyle(d2Parent)
+
+            if (d1Style.zIndex !== 'auto'
+                && d2Style.zIndex !== 'auto') {
+                const zIndex1 = parseInt(d1Style.zIndex)
+                const zIndex2 = parseInt(d2Style.zIndex)
+                if (zIndex1 > zIndex2) return d1
+                else if (zIndex2 > zIndex1) return d2
+            } else if (d1Style.zIndex !== 'auto'
+                && d2Style.zIndex === 'auto') {
+                const zIndex1 = parseInt(d1Style.zIndex)
+                if (zIndex1 > 0) return d1
+                else if (zIndex1 < 0) return d2
+            } else if (d1Style.zIndex === 'auto'
+                && d2Style.zIndex !== 'auto') {
+                const zIndex2 = parseInt(d2Style.zIndex)
+                if (zIndex2 > 0) return d2
+                else if (zIndex2 < 0) return d1
+            }
+
+            i++
+        }
+
+        // If no z-index found, compare their relative positon in DOM
+        console.log('no z-index found')
+        if (d1.target.compareDocumentPosition(d2.target) & Node.DOCUMENT_POSITION_PRECEDING) {
+            // d1 is positioned after d2
+            return d1
+        } else {
+            return d2
+        }
+    }
+
+
+    getNearestCommonAncestor = (e1: HTMLElement, e2: HTMLElement): HTMLElement | null => {
+        const path1: HTMLElement[] = []
+        const path2: HTMLElement[] = []
+
+        let cur: HTMLElement | null = e1
+        while (cur) {
+            path1.push(cur)
+            cur = cur.parentElement
+        }
+
+        cur = e2
+        while (cur) {
+            path2.push(cur)
+            cur = cur.parentElement
+        }
+
+        const len1 = path1.length
+        const len2 = path2.length
+        let i = 0
+        while (i <= len1 && i <= len2) {
+            if (path1[len1 - i] === path2[len2 - i]) i++
+            else return path1[len1 - i + 1]
+        }
+
+        return null
     }
 }
 
@@ -271,7 +417,6 @@ chrome.storage.local.get(Object.keys(defaultConfig), function (result) {
 
 
 class FullscreenImage {
-
     src: string
     originalBodyStyle: string
 
@@ -303,15 +448,16 @@ class FullscreenImage {
         this.img.setAttribute('rotate-state', '0')
         this.img.src = this.src
 
-        this.toolsContainer.className = '--fullscreen-image-tools-container'
+        this.toolsContainer.className = '--fullscreen-image-tools-container hide-button'
     }
 
+
     addEventHandler = () => {
-        this.routateAnticlockwise.onclick = (): void => this.routateImg('anticlockwise')
-        this.routateClockwise.onclick = (): void => this.routateImg('clockwise')
+        this.routateAnticlockwise.onclick = () => this.routateImg('anticlockwise')
+        this.routateClockwise.onclick = () => this.routateImg('clockwise')
 
         // exit fit viewport mode
-        this.exitFitViewport.onclick = (): void => {
+        this.exitFitViewport.onclick = () => {
             this.container.classList.remove('fit-viewport')
             this.container.classList.add('custom-size')
             this.exitFitViewport.remove()
@@ -319,7 +465,7 @@ class FullscreenImage {
         }
 
         // fit viewport mode
-        this.fitViewport.onclick = (): void => {
+        this.fitViewport.onclick = () => {
             this.container.classList.add('fit-viewport')
             this.container.classList.remove('custom-size')
             this.fitViewport.remove()
@@ -329,6 +475,16 @@ class FullscreenImage {
         const closeImage = () => this.container.remove()
         stateHandler.registerExitStep(closeImage)
         this.close.onclick = stateHandler.exit
+
+        this.toolsContainer.addEventListener('mouseover', (ev) => {
+            this.toolsContainer.classList.remove('hide-button')
+            this.toolsContainer.classList.add('show-button')
+        })
+
+        this.toolsContainer.addEventListener('mouseleave', (ev) => {
+            this.toolsContainer.classList.add('hide-button')
+            this.toolsContainer.classList.remove('show-button')
+        })
     }
 
     arrangeDOM = () => {
@@ -341,6 +497,7 @@ class FullscreenImage {
         this.toolsContainer.appendChild(this.routateAnticlockwise)
         this.toolsContainer.appendChild(this.routateClockwise)
         this.toolsContainer.appendChild(this.exitFitViewport)
+
     }
 
     static createSVGNode(svgString: string): SVGElement {
@@ -379,7 +536,7 @@ class FullscreenCanvas {
 
     constructor(target: HTMLCanvasElement | HTMLVideoElement) {
         this.target = target
-        
+
         // store original style
         for (const styleName of this.target.style) {
             const priority = this.target.style.getPropertyPriority(styleName) === 'important' ? '!important' : ''
@@ -403,7 +560,7 @@ class FullscreenCanvas {
     }
 
     hideRestElements = () => {
-        const styleNode = createStyleNode(`
+        const styleNode = appendStyleNode(`
             :not(#for-higher-specificity) {
                 visibility: hidden !important;
                 overflow: visible !important;
@@ -447,7 +604,7 @@ class FullscreenCanvas {
 
 function setVideoFullScreen(target: HTMLVideoElement): void {
 
-    const styleNode = createStyleNode(`
+    const styleNode = appendStyleNode(`
         /* same to: * { ... } */
         :not(#for-higher-specificity) {
             visibility: hidden !important;

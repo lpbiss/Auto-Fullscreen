@@ -1,4 +1,4 @@
-export function createStyleNode(cssRules: string): HTMLStyleElement {
+export function appendStyleNode(cssRules: string): HTMLStyleElement {
     const styleNode = document.createElement('style')
     styleNode.appendChild(document.createTextNode(cssRules))
     document.head.appendChild(styleNode)

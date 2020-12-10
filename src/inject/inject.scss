@@ -4,11 +4,10 @@
     top: 0px;
     height: 100vh;
     width: 100vw;
-    background-color: rgba(0,0,0,0.8);
+    background-color: rgba(0, 0, 0, 0.8);
     user-select: none;
 
     &.fit-viewport {
-
         overflow: hidden;
         display: flex;
         justify-content: center;
@@ -16,12 +15,12 @@
 
         img.fullscreen-image {
             object-fit: contain;
-    
+
             &.horizontal {
                 width: 100vw;
                 height: 100vh;
             }
-    
+
             &.vertical {
                 width: 100vh;
                 height: 100vw;
@@ -30,38 +29,45 @@
     }
 
     &.custom-size {
-
         overflow: auto;
 
         img.fullscreen-image {
             display: block;
             margin: 0 auto;
         }
-        
     }
-    
 
     .--fullscreen-image-tools-container {
+
         position: fixed;
         top: 0;
-        right: 20px;
-        width: 50px;
+        right: -50px;
+        width: 120px;
         height: 100%;
+        box-sizing: border-box;
+
+        &.show-button {
+            animation-name: show-button;
+            animation-duration: 0.5s;
+            animation-fill-mode: forwards;
+        }
+
+        &.hide-button {
+            animation-name: hide-button;
+            animation-duration: 2s;
+            animation-fill-mode: forwards;
+        }
 
         display: flex;
         flex-direction: column;
         justify-content: space-evenly;
 
-        &:hover svg {
-            display: block;
-        }
-
         svg {
             width: 50px;
             height: 50px;
-            fill:white;
+            fill: white;
             cursor: pointer;
-            display: none;
+            // display: none;
 
             &:hover {
                 fill: red;
@@ -70,12 +76,47 @@
     }
 }
 
-
-overlay-root.--auto-fullscreen-overlay-root{
+overlay-root.--auto-fullscreen-overlay-root {
     target-overlay {
         position: absolute;
         opacity: 0.5;
         background-color: rgb(255, 102, 102);
         z-index: 999999;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        overflow-wrap: anywhere;
+
+        &:hover {
+            opacity: 0.9;
+        }
+    }
+}
+
+
+
+@keyframes show-button {
+    from {
+        padding-left: 70px;
+    }
+
+    to {
+        padding-left: 0px;
+    }
+}
+
+@keyframes hide-button {
+    from {
+        padding-left: 0px;
+    }
+
+    30% {
+        padding-left: 0px;
+    }
+
+    to {
+        padding-left: 70px;
     }
 }
