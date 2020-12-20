@@ -1,0 +1,38 @@
+{
+    "manifest_version": 2,
+    "name": "Auto Fullscreen",
+    "version": "1.0.0",
+    "description": "Maximize videos or images.",
+    "author": "lpbiss",
+    "homepage_url": "https://github.com/lpbiss/Auto-Fullscreen",
+    "background": {
+        "scripts": [
+            "background.js"
+        ]
+    },
+    "permissions": [
+        "tabs",
+        "storage",
+        "http://*/*",
+        "https://*/*"
+    ],
+    "options_ui": {
+        "page": "options.html",
+        "open_in_tab": true
+    },
+    "browser_action": {},
+    "icons": {
+        "128": "./icon/icon128.png"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "http://*/*",
+                "https://*/*"
+            ],
+            "js": [
+                "inject.js"
+            ]
+        }
+    ]
+}
