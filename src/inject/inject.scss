@@ -78,6 +78,8 @@
 
 overlay-root.--auto-fullscreen-overlay-root {
     target-overlay {
+        cursor: pointer;
+        
         position: absolute;
         opacity: 0.5;
         background-color: rgb(255, 102, 102);

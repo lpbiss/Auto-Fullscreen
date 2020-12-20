@@ -130,6 +130,7 @@ const fullscreener = new class {
             overlayRoot.className = '--auto-fullscreen-overlay-root'
             document.body.appendChild(overlayRoot)
 
+            // 1. create all overlay
             const overlayDetails: OverlayDetail[] = targetElements.map(el => {
                 const targetRect = el.getBoundingClientRect()
                 return {
@@ -143,19 +144,31 @@ const fullscreener = new class {
                 }
             })
 
-            const filtered = this.overlapOverlayFilter(overlayDetails).map(this.createOverlay)
-            if (filtered.length === 1)
-                resolve(filtered[0] as TargetElement)
-            else
-                filtered.forEach(overlay => {
-                    overlayRoot.appendChild(overlay)
-                })
+            // 2. sort by target's z-index, ascending
+            overlayDetails.sort((d1, d2) => this.compareZIndex(d1.target, d2.target))
 
-
-            stateHandler.registerExitStep(() => {
-                resolve('canceled')
-                overlayRoot.remove()
+            // 3. filter out overlays with lower z-index and fully covered by other one
+            const filtered = overlayDetails.filter((cur, index, all) => {
+                for (let i = index + 1; i < all.length; i++) {
+                    const cp = this.overlayContainBy(cur, all[i])
+                    if (cp === 'equal' || cp === all[i]) return false
+                }
+                return true
             })
+
+            if (filtered.length === 1)
+                resolve(filtered[0].target)
+            else {
+                filtered
+                    .map(this.createOverlay)
+                    .forEach(overlay => overlayRoot.appendChild(overlay))
+
+                stateHandler.registerExitStep(() => {
+                    resolve('canceled')
+                    overlayRoot.remove()
+                })
+            }
+
         })
     }
 
@@ -173,72 +186,49 @@ const fullscreener = new class {
     createOverlayText = (el: TargetElement): string => {
         const res: string[] = ['Click to maximize']
         if (el instanceof HTMLImageElement) {
-            res.push(el.src)
+            res.push(`Resolution: ${el.naturalWidth} x ${el.naturalHeight}`)
+            res.push(el.src.replace(/^.*\//, ''))
         } else if (el instanceof HTMLVideoElement) {
+            res.push(`Duration: ${el.duration}s`)
             res.push(el.src)
         }
 
         return res.join('\n')
     }
 
-    /**
-     * If some elements' overlay cover each other completely,
-     * those with lower z-index get filtered out.
-     * See resolveOverLap() for detail.
-     */
-    overlapOverlayFilter = (details: OverlayDetail[]): OverlayDetail[] => {
-
-        const res: Set<OverlayDetail> = new Set(details)
-        const toDel: Set<OverlayDetail> = new Set()
-
-        const isOverlap = (d1: OverlayDetail, d2: OverlayDetail): Boolean => {
-            if (d1 === d2) return false
-            if (d1.top > d2.top) [d2, d1] = [d1, d2]
-            // check if d1 covers d2
-            if (d1.left <= d2.left &&
-                d1.top + d1.height >= d2.top + d2.height &&
-                d1.left + d1.width >= d2.left + d2.width)
-                return true
-            else return false
-        }
-
-        for (const d1 of res) {
-            for (const d2 of res) {
-                if (isOverlap(d1, d2)) {
-                    toDel.add(this.resolveOverLap(d1, d2) === d1 ? d2 : d1)
-                }
-            }
-        }
-
-        for (const d of toDel) res.delete(d)
-
-        return Array.from(res)
+    /** return the overlay which contians the other one */
+    overlayContainBy = (d1: OverlayDetail, d2: OverlayDetail): OverlayDetail | 'equal' | false => {
+        // TODO: only consider size in viewport
+        if (d1 === d2) return false
+        if (d1.top === d2.top &&
+            d1.left === d2.left &&
+            d1.top + d1.height === d2.top + d2.height &&
+            d1.left + d1.width === d2.left + d2.width)
+            return 'equal'
+        else if (d1.top <= d2.top &&
+            d1.left <= d2.left &&
+            d1.top + d1.height >= d2.top + d2.height &&
+            d1.left + d1.width >= d2.left + d2.width)
+            return d1
+        else if (d1.top >= d2.top &&
+            d1.left >= d2.left &&
+            d1.top + d1.height <= d2.top + d2.height &&
+            d1.left + d1.width <= d2.left + d2.width)
+            return d2
+        else
+            return false
     }
 
 
-    /** return the overlay to keep */
-    resolveOverLap = (d1: OverlayDetail, d2: OverlayDetail): OverlayDetail => {
-
-        const getRootPath = (node: HTMLElement, root: HTMLElement): HTMLElement[] => {
-            const res: HTMLElement[] = []
-            let cur: HTMLElement | null = node
-            while (cur !== root && cur !== null) {
-                res.push(cur)
-                cur = cur.parentElement
-            }
-            return res
-        }
-
-        const root = this.getNearestCommonAncestor(d1.target, d2.target)
+    /** return -1 if e1 has lower z-index than e2 */
+    compareZIndex = (e1: HTMLElement, e2: HTMLElement): -1 | 1 => {
+        const { root, path1, path2 } = this.getNearestCommonAncestor(e1, e2)
         if (root === null) throw new Error('getNearestCommonAncestor return null')
-
-        const path1 = getRootPath(d1.target, root)
-        const path2 = getRootPath(d2.target, root)
 
         const len1 = path1.length
         const len2 = path2.length
         let i = 1
-        // Check z-index from root all the way to d1.target and d2.target
+        // Check z-index from root down to d1.target and d2.target
         while (i <= len1 && i <= len2) {
             const d1Parent = path1[len1 - i]
             const d2Parent = path2[len2 - i]
@@ -250,35 +240,37 @@ const fullscreener = new class {
                 && d2Style.zIndex !== 'auto') {
                 const zIndex1 = parseInt(d1Style.zIndex)
                 const zIndex2 = parseInt(d2Style.zIndex)
-                if (zIndex1 > zIndex2) return d1
-                else if (zIndex2 > zIndex1) return d2
+                if (zIndex1 > zIndex2) return 1
+                else if (zIndex2 > zIndex1) return -1
             } else if (d1Style.zIndex !== 'auto'
                 && d2Style.zIndex === 'auto') {
                 const zIndex1 = parseInt(d1Style.zIndex)
-                if (zIndex1 > 0) return d1
-                else if (zIndex1 < 0) return d2
+                if (zIndex1 > 0) return 1
+                else if (zIndex1 < 0) return -1
             } else if (d1Style.zIndex === 'auto'
                 && d2Style.zIndex !== 'auto') {
                 const zIndex2 = parseInt(d2Style.zIndex)
-                if (zIndex2 > 0) return d2
-                else if (zIndex2 < 0) return d1
+                if (zIndex2 > 0) return -1
+                else if (zIndex2 < 0) return 1
             }
 
             i++
         }
 
         // If no z-index found, compare their relative positon in DOM
-        console.log('no z-index found')
-        if (d1.target.compareDocumentPosition(d2.target) & Node.DOCUMENT_POSITION_PRECEDING) {
-            // d1 is positioned after d2
-            return d1
-        } else {
-            return d2
-        }
+        if (e1.compareDocumentPosition(e2) & Node.DOCUMENT_POSITION_PRECEDING)
+            return 1  // e1 is positioned after e2
+        else
+            return -1
+
     }
 
 
-    getNearestCommonAncestor = (e1: HTMLElement, e2: HTMLElement): HTMLElement | null => {
+    getNearestCommonAncestor = (e1: HTMLElement, e2: HTMLElement): {
+        root: HTMLElement | null,
+        path1: HTMLElement[],
+        path2: HTMLElement[],
+    } => {
         const path1: HTMLElement[] = []
         const path2: HTMLElement[] = []
 
@@ -297,12 +289,23 @@ const fullscreener = new class {
         const len1 = path1.length
         const len2 = path2.length
         let i = 0
+
         while (i <= len1 && i <= len2) {
-            if (path1[len1 - i] === path2[len2 - i]) i++
-            else return path1[len1 - i + 1]
+            if (path1[len1 - i] === path2[len2 - i])
+                i++
+            else
+                return {
+                    root: path1[len1 - i + 1],
+                    path1,
+                    path2,
+                }
         }
 
-        return null
+        return {
+            root: null,
+            path1,
+            path2,
+        }
     }
 }
 

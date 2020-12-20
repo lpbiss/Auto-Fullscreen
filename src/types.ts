@@ -4,7 +4,7 @@ type OverlayDetail = {
     left: number;
     top: number;
     text: string;
-    target: HTMLElement;
+    target: TargetElement;
     onClick: (ev: MouseEvent) => void;
 }
 
