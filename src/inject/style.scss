@@ -32,18 +32,17 @@
         overflow: auto;
 
         img.fullscreen-image {
+            position: relative;
             display: block;
-            margin: 0 auto;
+            cursor: move;
         }
     }
 
     .--fullscreen-image-tools-container {
-
+        overflow: hidden;
         position: fixed;
         top: 0;
-        right: -50px;
-        width: 120px;
-        height: 100%;
+        width: 70px;
         box-sizing: border-box;
 
         &.show-button {

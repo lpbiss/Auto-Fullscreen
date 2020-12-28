@@ -11,7 +11,7 @@ module.exports = {
         minimize: false
     },
     entry: {
-        inject: './src/inject/inject.ts',
+        inject: './src/inject/index.ts',
         background: './src/background.ts',
         options: './src/options.tsx'
     },

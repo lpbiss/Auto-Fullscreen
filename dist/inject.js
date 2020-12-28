@@ -1,7 +1,7 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 405:
+/***/ 63:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -14,7 +14,7 @@
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, ".--auto-fullscreen-contianer{z-index:999999;position:fixed;top:0px;height:100vh;width:100vw;background-color:rgba(0,0,0,0.8);user-select:none}.--auto-fullscreen-contianer.fit-viewport{overflow:hidden;display:flex;justify-content:center;align-items:center}.--auto-fullscreen-contianer.fit-viewport img.fullscreen-image{object-fit:contain}.--auto-fullscreen-contianer.fit-viewport img.fullscreen-image.horizontal{width:100vw;height:100vh}.--auto-fullscreen-contianer.fit-viewport img.fullscreen-image.vertical{width:100vh;height:100vw}.--auto-fullscreen-contianer.custom-size{overflow:auto}.--auto-fullscreen-contianer.custom-size img.fullscreen-image{display:block;margin:0 auto}.--auto-fullscreen-contianer .--fullscreen-image-tools-container{position:fixed;top:0;right:-50px;width:120px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-evenly}.--auto-fullscreen-contianer .--fullscreen-image-tools-container.show-button{animation-name:show-button;animation-duration:0.5s;animation-fill-mode:forwards}.--auto-fullscreen-contianer .--fullscreen-image-tools-container.hide-button{animation-name:hide-button;animation-duration:2s;animation-fill-mode:forwards}.--auto-fullscreen-contianer .--fullscreen-image-tools-container svg{width:50px;height:50px;fill:white;cursor:pointer}.--auto-fullscreen-contianer .--fullscreen-image-tools-container svg:hover{fill:red}overlay-root.--auto-fullscreen-overlay-root target-overlay{cursor:pointer;position:absolute;opacity:0.5;background-color:#f66;z-index:999999;display:flex;justify-content:center;align-items:center;text-align:center;overflow-wrap:anywhere}overlay-root.--auto-fullscreen-overlay-root target-overlay:hover{opacity:0.9}@keyframes show-button{from{padding-left:70px}to{padding-left:0px}}@keyframes hide-button{from{padding-left:0px}30%{padding-left:0px}to{padding-left:70px}}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, ".--auto-fullscreen-contianer{z-index:999999;position:fixed;top:0px;height:100vh;width:100vw;background-color:rgba(0,0,0,0.8);user-select:none}.--auto-fullscreen-contianer.fit-viewport{overflow:hidden;display:flex;justify-content:center;align-items:center}.--auto-fullscreen-contianer.fit-viewport img.fullscreen-image{object-fit:contain}.--auto-fullscreen-contianer.fit-viewport img.fullscreen-image.horizontal{width:100vw;height:100vh}.--auto-fullscreen-contianer.fit-viewport img.fullscreen-image.vertical{width:100vh;height:100vw}.--auto-fullscreen-contianer.custom-size{overflow:auto}.--auto-fullscreen-contianer.custom-size img.fullscreen-image{position:relative;display:block;cursor:move}.--auto-fullscreen-contianer .--fullscreen-image-tools-container{overflow:hidden;position:fixed;top:0;width:70px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-evenly}.--auto-fullscreen-contianer .--fullscreen-image-tools-container.show-button{animation-name:show-button;animation-duration:0.5s;animation-fill-mode:forwards}.--auto-fullscreen-contianer .--fullscreen-image-tools-container.hide-button{animation-name:hide-button;animation-duration:2s;animation-fill-mode:forwards}.--auto-fullscreen-contianer .--fullscreen-image-tools-container svg{width:50px;height:50px;fill:white;cursor:pointer}.--auto-fullscreen-contianer .--fullscreen-image-tools-container svg:hover{fill:red}overlay-root.--auto-fullscreen-overlay-root target-overlay{cursor:pointer;position:absolute;opacity:0.5;background-color:#f66;z-index:999999;display:flex;justify-content:center;align-items:center;text-align:center;overflow-wrap:anywhere}overlay-root.--auto-fullscreen-overlay-root target-overlay:hover{opacity:0.9}@keyframes show-button{from{padding-left:70px}to{padding-left:0px}}@keyframes hide-button{from{padding-left:0px}30%{padding-left:0px}to{padding-left:70px}}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -467,9 +467,9 @@ module.exports = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__(379);
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
-// EXTERNAL MODULE: ./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./src/inject/inject.scss
-var inject = __webpack_require__(405);
-;// CONCATENATED MODULE: ./src/inject/inject.scss
+// EXTERNAL MODULE: ./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./src/inject/style.scss
+var style = __webpack_require__(63);
+;// CONCATENATED MODULE: ./src/inject/style.scss
 
             
 
@@ -478,54 +478,11 @@ var options = {};
 options.insert = "head";
 options.singleton = false;
 
-var update = injectStylesIntoStyleTag_default()(inject/* default */.Z, options);
+var update = injectStylesIntoStyleTag_default()(style/* default */.Z, options);
 
 
 
-/* harmony default export */ const inject_inject = (inject/* default.locals */.Z.locals || {});
-// EXTERNAL MODULE: ./src/inject/resource/close.svg
-var resource_close = __webpack_require__(290);
-var close_default = /*#__PURE__*/__webpack_require__.n(resource_close);
-// EXTERNAL MODULE: ./src/inject/resource/clockwise.svg
-var clockwise = __webpack_require__(62);
-var clockwise_default = /*#__PURE__*/__webpack_require__.n(clockwise);
-// EXTERNAL MODULE: ./src/inject/resource/anticlockwise.svg
-var anticlockwise = __webpack_require__(200);
-var anticlockwise_default = /*#__PURE__*/__webpack_require__.n(anticlockwise);
-// EXTERNAL MODULE: ./src/inject/resource/fullscreen-exit.svg
-var fullscreen_exit = __webpack_require__(770);
-var fullscreen_exit_default = /*#__PURE__*/__webpack_require__.n(fullscreen_exit);
-// EXTERNAL MODULE: ./src/inject/resource/fit-viewport.svg
-var fit_viewport = __webpack_require__(521);
-var fit_viewport_default = /*#__PURE__*/__webpack_require__.n(fit_viewport);
-;// CONCATENATED MODULE: ./src/inject/util.ts
-function appendStyleNode(cssRules) {
-    const styleNode = document.createElement('style');
-    styleNode.appendChild(document.createTextNode(cssRules));
-    document.head.appendChild(styleNode);
-    return styleNode;
-}
-/**
- * Create a script tag and inject it into the document.
- * ref: https://intoli.com/blog/sandbox-breakout/
- */
-function runInPageContext(func) {
-    const scriptContent = `
-        (${func.toString()})();
-        document.currentScript.remove();
-    `;
-    const scriptElement = document.createElement('script');
-    scriptElement.innerHTML = scriptContent;
-    document.documentElement.prepend(scriptElement);
-}
-function concatCSSRuleMap(CSSRuleMap) {
-    let res = '';
-    CSSRuleMap.forEach((val, ruleName) => {
-        res += `${ruleName}: ${val};`;
-    });
-    return res;
-}
-
+/* harmony default export */ const inject_style = (style/* default.locals */.Z.locals || {});
 ;// CONCATENATED MODULE: ./src/global.ts
 const defaultConfig = {
     widthLowerBound: 100,
@@ -554,24 +511,9 @@ const configKeys = (/* unused pure expression or super */ null && ([
     'matchList',
 ]));
 
-;// CONCATENATED MODULE: ./src/inject/inject.ts
+;// CONCATENATED MODULE: ./src/inject/StateHandler.ts
 
-
-
-
-
-
-// import zoomInSVG from './resource/zoom-in.svg'
-// import zoomOutSVG from './resource/zoom-out.svg'
-
-
-/*
-    Todos:
-    1. support canvas image (ongoing)
-    2. add zoom-in/zoom-out function for image
-    3. detect iframe elements
-*/
-const stateHandler = new class {
+/* harmony default export */ const StateHandler = (new class {
     constructor() {
         this.registerExitStep = (step) => {
             this.exitSteps.push(step);
@@ -587,13 +529,436 @@ const stateHandler = new class {
         this.state = 'off';
         this.exitSteps = [];
     }
-};
+});
+
+// EXTERNAL MODULE: ./src/inject/resource/close.svg
+var resource_close = __webpack_require__(290);
+var close_default = /*#__PURE__*/__webpack_require__.n(resource_close);
+// EXTERNAL MODULE: ./src/inject/resource/clockwise.svg
+var clockwise = __webpack_require__(62);
+var clockwise_default = /*#__PURE__*/__webpack_require__.n(clockwise);
+// EXTERNAL MODULE: ./src/inject/resource/anticlockwise.svg
+var anticlockwise = __webpack_require__(200);
+var anticlockwise_default = /*#__PURE__*/__webpack_require__.n(anticlockwise);
+// EXTERNAL MODULE: ./src/inject/resource/fullscreen-exit.svg
+var fullscreen_exit = __webpack_require__(770);
+var fullscreen_exit_default = /*#__PURE__*/__webpack_require__.n(fullscreen_exit);
+// EXTERNAL MODULE: ./src/inject/resource/fit-viewport.svg
+var fit_viewport = __webpack_require__(521);
+var fit_viewport_default = /*#__PURE__*/__webpack_require__.n(fit_viewport);
+;// CONCATENATED MODULE: ./src/inject/FullscreenImage.ts
+
+
+
+
+
+
+class FullscreenImage {
+    constructor(target) {
+        this.container = document.createElement('div');
+        this.img = document.createElement('img');
+        this.toolsContainer = document.createElement('div');
+        this.close = createSVGNode((close_default()));
+        this.routateAnticlockwise = createSVGNode((anticlockwise_default()));
+        this.routateClockwise = createSVGNode((clockwise_default()));
+        this.exitFitViewport = createSVGNode((fullscreen_exit_default()));
+        this.fitViewport = createSVGNode((fit_viewport_default()));
+        this.state = {
+            showToolbar: false,
+            viewMode: 'fit-viewport',
+            rotateDegree: 0,
+            scale: 1,
+        };
+        this.setState = (newState) => {
+            this.state = { ...this.state, ...newState };
+            if (this.state.viewMode === 'fit-viewport') {
+                this.container.classList.add('fit-viewport');
+                this.container.classList.remove('custom-size');
+                this.fitViewport.remove();
+                this.toolsContainer.appendChild(this.exitFitViewport);
+                // do not scale image in fit-viewport mode
+                this.img.style.transform = `rotate(${this.state.rotateDegree}deg)`;
+            }
+            else if (this.state.viewMode === 'custom-size') {
+                this.container.classList.remove('fit-viewport');
+                this.container.classList.add('custom-size');
+                this.exitFitViewport.remove();
+                this.toolsContainer.appendChild(this.fitViewport);
+                this.img.style.transform = `rotate(${this.state.rotateDegree}deg) scale(${this.state.scale})`;
+            }
+            // toolbar
+            this.toolsContainer.classList.toggle('hide-button', !this.state.showToolbar);
+            this.toolsContainer.classList.toggle('show-button', this.state.showToolbar);
+            const scrollbarWidth = this.container.offsetWidth - this.container.clientWidth;
+            const scrollbarHeight = this.container.offsetHeight - this.container.clientHeight;
+            this.toolsContainer.style.right = `${scrollbarWidth}px`;
+            this.toolsContainer.style.height = `calc(100% - ${scrollbarHeight}px)`;
+            this.img.classList.toggle('horizontal', this.state.rotateDegree === 0 || this.state.rotateDegree === 180);
+            this.img.classList.toggle('vertical', this.state.rotateDegree === 90 || this.state.rotateDegree === 270);
+        };
+        this.addClassName = () => {
+            this.container.className = '--auto-fullscreen-contianer';
+            this.img.className = 'fullscreen-image';
+            this.toolsContainer.className = '--fullscreen-image-tools-container';
+        };
+        this.addEventHandler = () => {
+            this.routateAnticlockwise.onclick = () => {
+                const rotateDegree = (this.state.rotateDegree - 90) % 360;
+                this.setState({ rotateDegree });
+            };
+            this.routateClockwise.onclick = () => {
+                const rotateDegree = (this.state.rotateDegree + 90) % 360;
+                this.setState({ rotateDegree });
+            };
+            this.exitFitViewport.onclick = () => {
+                this.setState({ viewMode: 'custom-size' });
+            };
+            this.fitViewport.onclick = () => {
+                this.setState({ viewMode: 'fit-viewport' });
+            };
+            const closeImage = () => this.container.remove();
+            StateHandler.registerExitStep(closeImage);
+            this.close.onclick = StateHandler.exit;
+            this.toolsContainer.addEventListener('mouseover', ev => {
+                this.setState({ showToolbar: true });
+            });
+            this.toolsContainer.addEventListener('mouseleave', ev => {
+                this.setState({ showToolbar: false });
+            });
+            // zoom
+            this.img.addEventListener('wheel', ev => {
+                ev.preventDefault();
+                if (this.state.viewMode === 'custom-size') {
+                    if (ev.deltaY > 0) {
+                        this.setState({ scale: this.state.scale - 0.05 });
+                    }
+                    else if (ev.deltaY < 0) {
+                        this.setState({ scale: this.state.scale + 0.05 });
+                    }
+                }
+            });
+            // drag image
+            let pos1;
+            let pos2;
+            let pos3;
+            let pos4;
+            const handleImageDrag = (ev) => {
+                pos1 = pos3 - ev.clientX;
+                pos2 = pos4 - ev.clientY;
+                pos3 = ev.clientX;
+                pos4 = ev.clientY;
+                this.img.style.top = `${this.img.offsetTop - pos2}px`;
+                this.img.style.left = `${this.img.offsetLeft - pos1}px`;
+            };
+            this.img.addEventListener('mousedown', ev => {
+                ev.preventDefault();
+                pos3 = ev.clientX;
+                pos4 = ev.clientY;
+                this.img.addEventListener('mousemove', handleImageDrag);
+                document.addEventListener('mouseup', ev => {
+                    this.img.removeEventListener('mousemove', handleImageDrag);
+                }, { once: true });
+            });
+        };
+        this.arrangeDOM = () => {
+            document.body.appendChild(this.container);
+            this.container.appendChild(this.img);
+            this.container.appendChild(this.toolsContainer);
+            this.toolsContainer.appendChild(this.close);
+            this.toolsContainer.appendChild(this.routateAnticlockwise);
+            this.toolsContainer.appendChild(this.routateClockwise);
+            this.toolsContainer.appendChild(this.exitFitViewport);
+        };
+        if (target instanceof HTMLImageElement)
+            this.img.src = target.src;
+        else
+            this.img.src = target;
+        this.originalBodyStyle = document.body.style.cssText;
+        document.body.style.cssText = 'overflow: hidden !important';
+        StateHandler.registerExitStep(() => {
+            document.body.style.cssText = this.originalBodyStyle;
+        });
+        this.addClassName();
+        this.addEventHandler();
+        this.arrangeDOM();
+        this.setState(this.state);
+    }
+}
+function createSVGNode(svgString) {
+    const template = document.createElement('template');
+    template.innerHTML = svgString;
+    return template.content.firstChild;
+}
+
+;// CONCATENATED MODULE: ./src/inject/util.ts
+function appendStyleNode(cssRules) {
+    const styleNode = document.createElement('style');
+    styleNode.appendChild(document.createTextNode(cssRules));
+    document.head.appendChild(styleNode);
+    return styleNode;
+}
+/**
+ * Create a script tag and inject it into the document.
+ * ref: https://intoli.com/blog/sandbox-breakout/
+ */
+function runInPageContext(func) {
+    const scriptContent = `
+        (${func.toString()})();
+        document.currentScript.remove();
+    `;
+    const scriptElement = document.createElement('script');
+    scriptElement.innerHTML = scriptContent;
+    document.documentElement.prepend(scriptElement);
+}
+function concatCSSRuleMap(CSSRuleMap) {
+    let res = '';
+    CSSRuleMap.forEach((val, ruleName) => {
+        res += `${ruleName}: ${val};`;
+    });
+    return res;
+}
+
+;// CONCATENATED MODULE: ./src/inject/setVideoFullScreen.ts
+
+
+function setVideoFullScreen(target) {
+    const styleNode = appendStyleNode(`
+        /* same to: * { ... } */
+        :not(#for-higher-specificity) {
+            visibility: hidden !important;
+            overflow: visible !important;
+            transform: none !important;
+            perspective: none !important;
+            filter: none !important;
+        }
+
+        html:not(#for-higher-specificity) {
+            overflow: hidden !important;
+        }
+    `);
+    const originalStyleMap = new Map();
+    for (const styleName of target.style) {
+        const priority = target.style.getPropertyPriority(styleName) === 'important' ? '!important' : '';
+        originalStyleMap.set(styleName, `${target.style.getPropertyValue(styleName)} ${priority}`.trim());
+    }
+    const CSSRuleMap = new Map([
+        ['position', 'fixed !important'],
+        ['top', '0px !important'],
+        ['left', '0px !important'],
+        ['width', '100vw !important'],
+        ['height', '100vh !important'],
+        ['zIndex', '99999 !important'],
+        ['visibility', 'visible !important'],
+        ['margin', '0 !important'],
+        ['padding', '0 !important'],
+        ['opacity', '1 !important'],
+    ]);
+    const fullscreenCssText = concatCSSRuleMap(CSSRuleMap);
+    target.style.cssText = fullscreenCssText;
+    target.focus();
+    const obConfig = {
+        attributes: true,
+        childList: false,
+        subtree: false,
+        attributeFilter: ['style']
+    };
+    const ob = new MutationObserver((mutations, observer) => {
+        observer.disconnect();
+        // detect style change and save to originalStyleMap
+        for (const styleName of target.style) {
+            const val = target.style.getPropertyValue(styleName);
+            const isImportant = target.style.getPropertyPriority(styleName);
+            const concatVal = `${val} ${isImportant ? '!important' : ''}`.trim();
+            if (CSSRuleMap.has(styleName)) {
+                if (CSSRuleMap.get(styleName) === concatVal)
+                    continue;
+                else
+                    originalStyleMap.set(styleName, concatVal);
+            }
+            else {
+                originalStyleMap.set(styleName, concatVal);
+            }
+        }
+        target.style.cssText = fullscreenCssText;
+        observer.observe(target, obConfig);
+    });
+    ob.observe(target, obConfig);
+    if (target.getAttribute('controls') !== null) {
+        StateHandler.registerExitStep(() => {
+            target.style.cssText = concatCSSRuleMap(originalStyleMap);
+            ob.disconnect();
+            styleNode.remove();
+        });
+    }
+    else {
+        target.setAttribute('controls', '');
+        /** use this type to prevent ts compile error */
+        const hookedVideo = target;
+        const handleClick = (ev) => {
+            if (ev.target == hookedVideo) {
+                if (hookedVideo.paused)
+                    hookedVideo.play('fullscreen');
+                else
+                    hookedVideo.pause('fullscreen');
+                ev.preventDefault();
+            }
+        };
+        const handleSpacePress = (ev) => {
+            if (ev.key == 'Space') {
+                if (hookedVideo.paused)
+                    hookedVideo.play('fullscreen');
+                else
+                    hookedVideo.pause('fullscreen');
+                ev.preventDefault();
+            }
+        };
+        document.addEventListener('click', handleClick, { capture: true });
+        document.addEventListener('keyup', handleSpacePress);
+        runInPageContext(hookMediaPrototype);
+        StateHandler.registerExitStep(() => {
+            // this looks like a callback but it runs synchronously
+            // so the hooked removeAttribute method get recovered before
+            // target.removeAttribute('controls') remove controls
+            runInPageContext(() => {
+                window['___$recoverHook___']();
+            });
+            target.style.cssText = concatCSSRuleMap(originalStyleMap);
+            ob.disconnect();
+            // target.style.cssText = originalStyle
+            target.removeAttribute('controls');
+            styleNode.remove();
+            document.removeEventListener('click', handleClick, { capture: true });
+            document.removeEventListener('keyup', handleSpacePress);
+        });
+    }
+}
+/**
+ * run as injected <script> element
+ * hook the play/pause method to prevent conflict
+ */
+function hookMediaPrototype() {
+    var _a;
+    const mediaProto = HTMLMediaElement.prototype;
+    const playNative = mediaProto.play;
+    mediaProto.play = function (source) {
+        if (source === 'fullscreen')
+            playNative.call(this);
+    };
+    const pauseNative = mediaProto.pause;
+    mediaProto.pause = function (source) {
+        if (source === 'fullscreen')
+            pauseNative.call(this);
+    };
+    const removeAttributeNative = mediaProto.removeAttribute;
+    mediaProto.removeAttribute = function (attr) {
+        if (attr === 'controls')
+            return;
+        else
+            removeAttributeNative.call(this, attr);
+    };
+    const setNative = (_a = Object.getOwnPropertyDescriptor(mediaProto, 'controls')) === null || _a === void 0 ? void 0 : _a.set;
+    Object.defineProperty(mediaProto, 'controls', { set: function () { return; } });
+    window['___$recoverHook___'] = () => {
+        mediaProto.play = playNative;
+        mediaProto.pause = pauseNative;
+        mediaProto.removeAttribute = removeAttributeNative;
+        Object.defineProperty(mediaProto, 'controls', { set: setNative });
+    };
+}
+
+;// CONCATENATED MODULE: ./src/inject/FullscreenCanvas.ts
+
+
+class FullscreenCanvas {
+    constructor(target) {
+        this.fullscreenRules = new Map([
+            ['position', 'fixed !important'],
+            ['zIndex', '99999 !important'],
+            ['visibility', 'visible !important'],
+            ['margin', '0 !important'],
+            ['padding', '0 !important'],
+            ['opacity', '1 !important'],
+        ]);
+        this.originalTargetStyle = new Map();
+        this.hideRestElements = () => {
+            const styleNode = appendStyleNode(`
+            :not(#for-higher-specificity) {
+                visibility: hidden !important;
+                overflow: visible !important;
+                transform: none !important;
+                perspective: none !important;
+                filter: none !important;
+            }
+
+            html:not(#for-higher-specificity) {
+                overflow: hidden !important;
+            }
+        `);
+            StateHandler.registerExitStep(() => {
+                styleNode.remove();
+            });
+        };
+        this.target = target;
+        // store original style
+        for (const styleName of this.target.style) {
+            const priority = this.target.style.getPropertyPriority(styleName) === 'important' ? '!important' : '';
+            this.originalTargetStyle.set(styleName, `${this.target.style.getPropertyValue(styleName)} ${priority}`.trim());
+        }
+        StateHandler.registerExitStep(() => {
+            this.target.style.cssText = concatCSSRuleMap(this.originalTargetStyle);
+        });
+        // set fullscreen rules
+        const { width, height, top, left } = this.computeFullscreenSize(this.target.width, this.target.height);
+        this.fullscreenRules.set('width', `${width}px !important`);
+        this.fullscreenRules.set('height', `${height}px !important`);
+        this.fullscreenRules.set('top', `${top}px !important`);
+        this.fullscreenRules.set('left', `${left}px !important`);
+        this.target.style.cssText = concatCSSRuleMap(this.fullscreenRules);
+        this.hideRestElements();
+    }
+    computeFullscreenSize(originalWidth, originalHeidgt) {
+        const canvasRatio = originalWidth / originalHeidgt;
+        const screenRatio = window.innerWidth / window.innerHeight;
+        if (canvasRatio > screenRatio) {
+            const height = window.innerWidth / canvasRatio;
+            return {
+                width: window.innerWidth,
+                height,
+                top: (window.innerHeight - height) / 2,
+                left: 0
+            };
+        }
+        else {
+            const width = window.innerHeight * canvasRatio;
+            return {
+                width,
+                height: window.innerHeight,
+                top: 0,
+                left: (window.innerWidth - width) / 2,
+            };
+        }
+    }
+}
+
+;// CONCATENATED MODULE: ./src/inject/index.ts
+
+// import zoomInSVG from './resource/zoom-in.svg'
+// import zoomOutSVG from './resource/zoom-out.svg'
+
+
+
+
+
+/*
+    Todos:
+    detect iframe elements
+*/
 const fullscreener = new class {
     constructor() {
         this.start = async () => {
-            stateHandler.exit();
+            StateHandler.exit();
             const allTargets = await this.getAllTargetElements();
-            const remain = this.filterOut(allTargets);
+            const remain = this.filterOutByVisibleArea(allTargets);
             let target;
             if (remain.length === 0)
                 target = 'canceled';
@@ -611,10 +976,10 @@ const fullscreener = new class {
                 new FullscreenCanvas(target);
             }
             else {
-                stateHandler.exit();
+                StateHandler.exit();
             }
         };
-        this.getEntrySize = (entry) => {
+        this.getVisibleSize = (entry) => {
             const widthVisible = entry.intersectionRect.right - entry.intersectionRect.left;
             const heightVisible = entry.intersectionRect.bottom - entry.intersectionRect.top;
             const areaVisible = widthVisible * heightVisible;
@@ -627,9 +992,9 @@ const fullscreener = new class {
                     entries.forEach(entry => {
                         if (!entry.isIntersecting)
                             return;
-                        const entrySize = this.getEntrySize(entry);
-                        if (entrySize.widthVisible <= stateHandler.config.widthLowerBound ||
-                            entrySize.heightVisible <= stateHandler.config.heightLowerBound)
+                        const entrySize = this.getVisibleSize(entry);
+                        if (entrySize.widthVisible <= StateHandler.config.widthLowerBound ||
+                            entrySize.heightVisible <= StateHandler.config.heightLowerBound)
                             return;
                         fullScreenTargets.push({
                             target: entry.target,
@@ -645,11 +1010,11 @@ const fullscreener = new class {
                 }
             });
         };
-        this.filterOut = (targets) => {
+        this.filterOutByVisibleArea = (targets) => {
             const res = [];
             const areaVisibleMax = Math.max(...targets.map(candidate => candidate.areaVisible));
             targets.forEach(target => {
-                if (target.areaVisible > areaVisibleMax * stateHandler.config.areaIgnorePercentage) {
+                if (target.areaVisible > areaVisibleMax * StateHandler.config.areaIgnorePercentage) {
                     res.push(target.target);
                 }
             });
@@ -690,7 +1055,7 @@ const fullscreener = new class {
                     filtered
                         .map(this.createOverlay)
                         .forEach(overlay => overlayRoot.appendChild(overlay));
-                    stateHandler.registerExitStep(() => {
+                    StateHandler.registerExitStep(() => {
                         resolve('canceled');
                         overlayRoot.remove();
                     });
@@ -823,10 +1188,10 @@ const fullscreener = new class {
         };
     }
 };
-const automation = new class {
+const Automation = new class {
     constructor() {
         this.start = async () => {
-            for (const matchDetail of stateHandler.config.matchList) {
+            for (const matchDetail of StateHandler.config.matchList) {
                 // skip disabled rules
                 if (!matchDetail.isEnabled)
                     continue;
@@ -896,26 +1261,26 @@ const automation = new class {
     }
 };
 chrome.storage.local.get(Object.keys(defaultConfig), function (result) {
-    stateHandler.config = result;
+    StateHandler.config = result;
     // add hotkey to exit fullscreen
     document.addEventListener('keyup', function (ev) {
-        if (ev.key === stateHandler.config.hotKey &&
-            ev.ctrlKey === stateHandler.config.hotkeyCtrl &&
-            ev.altKey === stateHandler.config.hotkeyAlt) {
-            if (stateHandler.state === 'on')
-                stateHandler.exit();
+        if (ev.key === StateHandler.config.hotKey &&
+            ev.ctrlKey === StateHandler.config.hotkeyCtrl &&
+            ev.altKey === StateHandler.config.hotkeyAlt) {
+            if (StateHandler.state === 'on')
+                StateHandler.exit();
             else
                 fullscreener.start();
         }
         else if (ev.key === 'Escape') {
-            stateHandler.exit();
+            StateHandler.exit();
         }
     });
     // when the extension icon being clicked
     chrome.runtime.onMessage.addListener(function (msg) {
         if (msg.action === 'fullscreen') {
-            if (stateHandler.state === 'on')
-                stateHandler.exit();
+            if (StateHandler.state === 'on')
+                StateHandler.exit();
             else
                 fullscreener.start();
         }
@@ -925,304 +1290,10 @@ chrome.storage.local.get(Object.keys(defaultConfig), function (result) {
         for (const key in changes) {
             newConfig[key] = changes[key].newValue;
         }
-        Object.assign(stateHandler.config, newConfig);
+        Object.assign(StateHandler.config, newConfig);
     });
-    automation.start();
+    Automation.start();
 });
-class FullscreenImage {
-    constructor(target) {
-        this.container = document.createElement('div');
-        this.img = document.createElement('img');
-        this.toolsContainer = document.createElement('div');
-        this.close = FullscreenImage.createSVGNode((close_default()));
-        this.routateAnticlockwise = FullscreenImage.createSVGNode((anticlockwise_default()));
-        this.routateClockwise = FullscreenImage.createSVGNode((clockwise_default()));
-        this.exitFitViewport = FullscreenImage.createSVGNode((fullscreen_exit_default()));
-        this.fitViewport = FullscreenImage.createSVGNode((fit_viewport_default()));
-        this.addAttr = () => {
-            this.container.className = '--auto-fullscreen-contianer fit-viewport';
-            this.img.className = 'fullscreen-image horizontal';
-            this.img.setAttribute('rotate-state', '0');
-            this.img.src = this.src;
-            this.toolsContainer.className = '--fullscreen-image-tools-container hide-button';
-        };
-        this.addEventHandler = () => {
-            this.routateAnticlockwise.onclick = () => this.routateImg('anticlockwise');
-            this.routateClockwise.onclick = () => this.routateImg('clockwise');
-            // exit fit viewport mode
-            this.exitFitViewport.onclick = () => {
-                this.container.classList.remove('fit-viewport');
-                this.container.classList.add('custom-size');
-                this.exitFitViewport.remove();
-                this.toolsContainer.appendChild(this.fitViewport);
-            };
-            // fit viewport mode
-            this.fitViewport.onclick = () => {
-                this.container.classList.add('fit-viewport');
-                this.container.classList.remove('custom-size');
-                this.fitViewport.remove();
-                this.toolsContainer.appendChild(this.exitFitViewport);
-            };
-            const closeImage = () => this.container.remove();
-            stateHandler.registerExitStep(closeImage);
-            this.close.onclick = stateHandler.exit;
-            this.toolsContainer.addEventListener('mouseover', (ev) => {
-                this.toolsContainer.classList.remove('hide-button');
-                this.toolsContainer.classList.add('show-button');
-            });
-            this.toolsContainer.addEventListener('mouseleave', (ev) => {
-                this.toolsContainer.classList.add('hide-button');
-                this.toolsContainer.classList.remove('show-button');
-            });
-        };
-        this.arrangeDOM = () => {
-            document.body.appendChild(this.container);
-            this.container.appendChild(this.img);
-            this.container.appendChild(this.toolsContainer);
-            this.toolsContainer.appendChild(this.close);
-            this.toolsContainer.appendChild(this.routateAnticlockwise);
-            this.toolsContainer.appendChild(this.routateClockwise);
-            this.toolsContainer.appendChild(this.exitFitViewport);
-        };
-        this.routateImg = (action) => {
-            var _a;
-            const rotateState = parseInt((_a = this.img.getAttribute('rotate-state')) !== null && _a !== void 0 ? _a : '0');
-            const newRotateState = action === 'clockwise' ? rotateState + 1 : rotateState - 1;
-            this.img.style.transform = `rotate(calc(${newRotateState} * 90deg))`;
-            this.img.setAttribute('rotate-state', newRotateState.toString());
-            // if newRotateState is even, add 'horizontal', remove 'vertical'
-            this.img.classList.toggle('horizontal', newRotateState % 2 === 0);
-            this.img.classList.toggle('vertical', newRotateState % 2 === 1);
-        };
-        if (target instanceof HTMLImageElement)
-            this.src = target.src;
-        else
-            this.src = target;
-        this.originalBodyStyle = document.body.style.cssText;
-        this.addAttr();
-        this.addEventHandler();
-        this.arrangeDOM();
-    }
-    static createSVGNode(svgString) {
-        const template = document.createElement('template');
-        template.innerHTML = svgString;
-        return template.content.firstChild;
-    }
-}
-class FullscreenCanvas {
-    constructor(target) {
-        this.fullscreenRules = new Map([
-            ['position', 'fixed !important'],
-            ['zIndex', '99999 !important'],
-            ['visibility', 'visible !important'],
-            ['margin', '0 !important'],
-            ['padding', '0 !important'],
-            ['opacity', '1 !important'],
-        ]);
-        this.originalTargetStyle = new Map();
-        this.hideRestElements = () => {
-            const styleNode = appendStyleNode(`
-            :not(#for-higher-specificity) {
-                visibility: hidden !important;
-                overflow: visible !important;
-                transform: none !important;
-                perspective: none !important;
-                filter: none !important;
-            }
-
-            html:not(#for-higher-specificity) {
-                overflow: hidden !important;
-            }
-        `);
-            stateHandler.registerExitStep(() => {
-                styleNode.remove();
-            });
-        };
-        this.target = target;
-        // store original style
-        for (const styleName of this.target.style) {
-            const priority = this.target.style.getPropertyPriority(styleName) === 'important' ? '!important' : '';
-            this.originalTargetStyle.set(styleName, `${this.target.style.getPropertyValue(styleName)} ${priority}`.trim());
-        }
-        stateHandler.registerExitStep(() => {
-            this.target.style.cssText = concatCSSRuleMap(this.originalTargetStyle);
-        });
-        // set fullscreen rules
-        const { width, height, top, left } = this.computeFullscreenSize(this.target.width, this.target.height);
-        this.fullscreenRules.set('width', `${width}px !important`);
-        this.fullscreenRules.set('height', `${height}px !important`);
-        this.fullscreenRules.set('top', `${top}px !important`);
-        this.fullscreenRules.set('left', `${left}px !important`);
-        this.target.style.cssText = concatCSSRuleMap(this.fullscreenRules);
-        this.hideRestElements();
-    }
-    computeFullscreenSize(originalWidth, originalHeidgt) {
-        const canvasRatio = originalWidth / originalHeidgt;
-        const screenRatio = window.innerWidth / window.innerHeight;
-        if (canvasRatio > screenRatio) {
-            const height = window.innerWidth / canvasRatio;
-            return {
-                width: window.innerWidth,
-                height,
-                top: (window.innerHeight - height) / 2,
-                left: 0
-            };
-        }
-        else {
-            const width = window.innerHeight * canvasRatio;
-            return {
-                width,
-                height: window.innerHeight,
-                top: 0,
-                left: (window.innerWidth - width) / 2,
-            };
-        }
-    }
-}
-function setVideoFullScreen(target) {
-    const styleNode = appendStyleNode(`
-        /* same to: * { ... } */
-        :not(#for-higher-specificity) {
-            visibility: hidden !important;
-            overflow: visible !important;
-            transform: none !important;
-            perspective: none !important;
-            filter: none !important;
-        }
-
-        html:not(#for-higher-specificity) {
-            overflow: hidden !important;
-        }
-    `);
-    const originalStyleMap = new Map();
-    for (const styleName of target.style) {
-        const priority = target.style.getPropertyPriority(styleName) === 'important' ? '!important' : '';
-        originalStyleMap.set(styleName, `${target.style.getPropertyValue(styleName)} ${priority}`.trim());
-    }
-    const CSSRuleMap = new Map([
-        ['position', 'fixed !important'],
-        ['top', '0px !important'],
-        ['left', '0px !important'],
-        ['width', '100vw !important'],
-        ['height', '100vh !important'],
-        ['zIndex', '99999 !important'],
-        ['visibility', 'visible !important'],
-        ['margin', '0 !important'],
-        ['padding', '0 !important'],
-        ['opacity', '1 !important'],
-    ]);
-    const fullscreenCssText = concatCSSRuleMap(CSSRuleMap);
-    target.style.cssText = fullscreenCssText;
-    target.focus();
-    const obConfig = {
-        attributes: true,
-        childList: false,
-        subtree: false,
-        attributeFilter: ['style']
-    };
-    const ob = new MutationObserver((mutations, observer) => {
-        observer.disconnect();
-        // detect style change and save to originalStyleMap
-        for (const styleName of target.style) {
-            const val = target.style.getPropertyValue(styleName);
-            const isImportant = target.style.getPropertyPriority(styleName);
-            const concatVal = `${val} ${isImportant ? '!important' : ''}`.trim();
-            if (CSSRuleMap.has(styleName)) {
-                if (CSSRuleMap.get(styleName) === concatVal)
-                    continue;
-                else
-                    originalStyleMap.set(styleName, concatVal);
-            }
-            else {
-                originalStyleMap.set(styleName, concatVal);
-            }
-        }
-        target.style.cssText = fullscreenCssText;
-        observer.observe(target, obConfig);
-    });
-    ob.observe(target, obConfig);
-    if (target.getAttribute('controls') !== null) {
-        stateHandler.registerExitStep(() => {
-            target.style.cssText = concatCSSRuleMap(originalStyleMap);
-            ob.disconnect();
-            styleNode.remove();
-        });
-    }
-    else {
-        target.setAttribute('controls', '');
-        /** use this type to prevent ts compile error */
-        const hookedVideo = target;
-        const handleClick = (ev) => {
-            if (ev.target == hookedVideo) {
-                if (hookedVideo.paused)
-                    hookedVideo.play('fullscreen');
-                else
-                    hookedVideo.pause('fullscreen');
-                ev.preventDefault();
-            }
-        };
-        const handleSpacePress = (ev) => {
-            if (ev.key == 'Space') {
-                if (hookedVideo.paused)
-                    hookedVideo.play('fullscreen');
-                else
-                    hookedVideo.pause('fullscreen');
-                ev.preventDefault();
-            }
-        };
-        document.addEventListener('click', handleClick, { capture: true });
-        document.addEventListener('keyup', handleSpacePress);
-        runInPageContext(hookMediaPrototype);
-        stateHandler.registerExitStep(() => {
-            // this looks like a callback but it runs synchronously
-            // so the hooked removeAttribute method get recovered before
-            // target.removeAttribute('controls') remove controls
-            runInPageContext(() => {
-                window['___$recoverHook___']();
-            });
-            target.style.cssText = concatCSSRuleMap(originalStyleMap);
-            ob.disconnect();
-            // target.style.cssText = originalStyle
-            target.removeAttribute('controls');
-            styleNode.remove();
-            document.removeEventListener('click', handleClick, { capture: true });
-            document.removeEventListener('keyup', handleSpacePress);
-        });
-    }
-}
-/**
- * run as injected <script> element
- * hook the play/pause method to prevent conflict
- */
-function hookMediaPrototype() {
-    var _a;
-    const mediaProto = HTMLMediaElement.prototype;
-    const playNative = mediaProto.play;
-    mediaProto.play = function (source) {
-        if (source === 'fullscreen')
-            playNative.call(this);
-    };
-    const pauseNative = mediaProto.pause;
-    mediaProto.pause = function (source) {
-        if (source === 'fullscreen')
-            pauseNative.call(this);
-    };
-    const removeAttributeNative = mediaProto.removeAttribute;
-    mediaProto.removeAttribute = function (attr) {
-        if (attr === 'controls')
-            return;
-        else
-            removeAttributeNative.call(this, attr);
-    };
-    const setNative = (_a = Object.getOwnPropertyDescriptor(mediaProto, 'controls')) === null || _a === void 0 ? void 0 : _a.set;
-    Object.defineProperty(mediaProto, 'controls', { set: function () { return; } });
-    window['___$recoverHook___'] = () => {
-        mediaProto.play = playNative;
-        mediaProto.pause = pauseNative;
-        mediaProto.removeAttribute = removeAttributeNative;
-        Object.defineProperty(mediaProto, 'controls', { set: setNative });
-    };
-}
 
 })();
 
