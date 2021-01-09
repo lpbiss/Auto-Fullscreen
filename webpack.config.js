@@ -13,7 +13,7 @@ module.exports = {
     entry: {
         inject: './src/inject/index.ts',
         background: './src/background.ts',
-        options: './src/options.tsx'
+        options: './src/options/options.tsx'
     },
     output: {
         filename: '[name].js',
@@ -50,7 +50,7 @@ module.exports = {
     plugins: [
         new CopyPlugin({
             patterns: [
-                { from: './src/options.html', to: './' },
+                { from: './src/options/options.html', to: './' },
                 { from: './src/manifest.json', to: './' },
                 { from: './src/icon/*', to: './icon', flatten: true }
             ],

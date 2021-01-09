@@ -10,7 +10,11 @@ type FullscreenImageState = {
     showToolbar: boolean,
     viewMode: 'fit-viewport' | 'custom-size',
     rotateDegree: 0 | 90 | 180 | 270,
-    scale: number,
+    // scale: number,
+    customWidth: number,
+    customHeight: number,
+    top: number,
+    left: number,
 }
 
 export default class FullscreenImage {
@@ -30,13 +34,20 @@ export default class FullscreenImage {
         showToolbar: false,
         viewMode: 'fit-viewport',
         rotateDegree: 0,
-        scale: 1,
+        // scale: 1,
+        customWidth: 0,
+        customHeight: 0,
+        top: 0,
+        left: 0,
     }
 
     constructor(target: HTMLImageElement | string) {
 
         if (target instanceof HTMLImageElement) this.img.src = target.src
         else this.img.src = target
+
+        this.state.customHeight = this.img.naturalHeight
+        this.state.customWidth = this.img.naturalWidth
 
         this.originalBodyStyle = document.body.style.cssText
         document.body.style.cssText = 'overflow: hidden !important'
@@ -52,43 +63,49 @@ export default class FullscreenImage {
     }
 
 
-    setState = (newState: Partial<FullscreenImageState>) => {
+    setState = (state: Partial<FullscreenImageState>) => {
 
-        this.state = { ...this.state, ...newState }
+        const newState = { ...this.state, ...state }
 
-        if (this.state.viewMode === 'fit-viewport') {
+        if (newState.viewMode === 'fit-viewport') {
             this.container.classList.add('fit-viewport')
             this.container.classList.remove('custom-size')
 
             this.fitViewport.remove()
             this.toolsContainer.appendChild(this.exitFitViewport)
 
-            // do not scale image in fit-viewport mode
-            this.img.style.transform = `rotate(${this.state.rotateDegree}deg)`
-
-        } else if (this.state.viewMode === 'custom-size') {
+            this.img.style.width = ''
+            this.img.style.height = ''
+            this.img.style.top = ''
+            this.img.style.left = ''
+        } else if (newState.viewMode === 'custom-size') {
             this.container.classList.remove('fit-viewport')
             this.container.classList.add('custom-size')
 
             this.exitFitViewport.remove()
             this.toolsContainer.appendChild(this.fitViewport)
 
-            this.img.style.transform = `rotate(${this.state.rotateDegree}deg) scale(${this.state.scale})`
-            
+            this.img.style.top = `${newState.top}px`
+            this.img.style.left = `${newState.left}px`
+            this.img.style.width = `${newState.customWidth}px`
+            this.img.style.height = `${newState.customHeight}px`
         }
+        this.img.style.transform = `rotate(${newState.rotateDegree}deg)`
 
         // toolbar
-        this.toolsContainer.classList.toggle('hide-button', !this.state.showToolbar)
-        this.toolsContainer.classList.toggle('show-button', this.state.showToolbar)
+        this.toolsContainer.classList.toggle('hide-button', !newState.showToolbar)
+        this.toolsContainer.classList.toggle('show-button', newState.showToolbar)
 
         const scrollbarWidth = this.container.offsetWidth - this.container.clientWidth
         const scrollbarHeight = this.container.offsetHeight - this.container.clientHeight
         this.toolsContainer.style.right = `${scrollbarWidth}px`
         this.toolsContainer.style.height = `calc(100% - ${scrollbarHeight}px)`
 
-        this.img.classList.toggle('horizontal', this.state.rotateDegree === 0 || this.state.rotateDegree === 180)
-        this.img.classList.toggle('vertical', this.state.rotateDegree === 90 || this.state.rotateDegree === 270)
+        this.img.classList.toggle('horizontal', newState.rotateDegree === 0 || newState.rotateDegree === 180)
+        this.img.classList.toggle('vertical', newState.rotateDegree === 90 || newState.rotateDegree === 270)
 
+
+        this.state = newState
     }
 
 
@@ -111,11 +128,21 @@ export default class FullscreenImage {
         }
 
         this.exitFitViewport.onclick = () => {
-            this.setState({ viewMode: 'custom-size' })
+            this.setState({
+                viewMode: 'custom-size',
+                top: (window.innerHeight - this.img.naturalHeight) / 2,
+                left: (window.innerWidth - this.img.naturalWidth) / 2,
+                customHeight: this.img.naturalHeight,
+                customWidth: this.img.naturalWidth,
+            })
         }
 
         this.fitViewport.onclick = () => {
-            this.setState({ viewMode: 'fit-viewport' })
+            this.setState({
+                viewMode: 'fit-viewport',
+                customHeight: this.img.naturalHeight,
+                customWidth: this.img.naturalWidth,
+            })
         }
 
         const closeImage = () => this.container.remove()
@@ -134,13 +161,26 @@ export default class FullscreenImage {
         this.img.addEventListener('wheel', ev => {
             ev.preventDefault()
             if (this.state.viewMode === 'custom-size') {
+                const hDiff = this.state.customHeight * 0.05
+                const wDiff = this.state.customWidth * 0.05
                 if (ev.deltaY > 0) {
-                    this.setState({ scale: this.state.scale - 0.05 })
+                    this.setState({
+                        customWidth: this.state.customWidth + wDiff,
+                        customHeight: this.state.customHeight + hDiff,
+                        left: this.state.left - wDiff / 2,
+                        top: this.state.top - hDiff / 2,
+                    })
                 } else if (ev.deltaY < 0) {
-                    this.setState({ scale: this.state.scale + 0.05 })
+                    this.setState({
+                        customWidth: this.state.customWidth - wDiff,
+                        customHeight: this.state.customHeight - hDiff,
+                        left: this.state.left + wDiff / 2,
+                        top: this.state.top + hDiff / 2,
+                    })
                 }
             }
         })
+
         // drag image
         let pos1: number
         let pos2: number
@@ -152,8 +192,10 @@ export default class FullscreenImage {
             pos2 = pos4 - ev.clientY
             pos3 = ev.clientX
             pos4 = ev.clientY
-            this.img.style.top = `${this.img.offsetTop - pos2}px`
-            this.img.style.left = `${this.img.offsetLeft - pos1}px`
+            this.setState({
+                top: this.img.offsetTop - pos2,
+                left: this.img.offsetLeft - pos1
+            })
         }
 
         this.img.addEventListener('mousedown', ev => {

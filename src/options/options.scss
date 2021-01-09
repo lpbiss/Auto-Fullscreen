@@ -8,7 +8,7 @@
     }
 
     input:invalid {
-        border: 2px dashed red;
+        border: 2px dashed rgb(255, 105, 105);
     }
 
     .config-row {
@@ -53,7 +53,7 @@
         }
     }
 
-    .config-automation {
+    .config-automation, .config-image-src {
         input {
             margin: 0 4px 0 4px;
         }
@@ -109,4 +109,21 @@
 .title::after {
     margin-left: 10px;
     margin-right: 30%;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #101010;
+        color: white;
+    }
+
+    input {
+        background: #2b2b2b;
+        color: white;
+    }
+
+    button {
+        background: #353535;
+        color: white;
+    }
 }

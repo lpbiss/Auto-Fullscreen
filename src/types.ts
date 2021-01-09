@@ -21,11 +21,6 @@ type FullScreenTarget = {
     areaVisible: number;
 }
 
-type MatchDetail = {
-    match: string;
-    selector?: string;
-    isEnabled: boolean;
-}
 
 declare module "*.svg" {
     const content: string
@@ -40,9 +35,18 @@ type FullScreenVideo = Modify<HTMLMediaElement, {
     pause: (source: 'fullscreen') => void;
 }>
 
-type contentScriptMessage = {
+type ContentScriptMessage = {
     action: 'fullscreen';
 }
+
+
+
+type MatchDetail = {
+    match: string;
+    selector?: string;
+    isEnabled: boolean;
+}
+
 
 type Config = {
     widthLowerBound: number;

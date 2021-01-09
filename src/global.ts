@@ -14,14 +14,3 @@ export const defaultConfig: Config= {
         },
     ],
 }
-
-export const configKeys: Array<keyof Config> = [
-    'widthLowerBound',
-    'heightLowerBound',
-    'areaIgnorePercentage',
-    'hotkeyCtrl',
-    'hotkeyAlt',
-    'hotKey',
-    'hotkeyEnable',
-    'matchList',
-]

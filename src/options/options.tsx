@@ -2,10 +2,11 @@ import * as React from "react"
 import * as ReactDOM from "react-dom"
 import './options.scss'
 
-import { defaultConfig } from "./global";
+import MatchList from './components/MatchList'
+
+import { defaultConfig } from "../global";
 
 // TODO: reset
-
 
 type ConfigFormState = {
     matchList: MatchDetail[];
@@ -13,35 +14,30 @@ type ConfigFormState = {
 
 class ConfigForm extends React.Component<Config, ConfigFormState> {
 
-    widthLowerBoundInput: React.RefObject<HTMLInputElement>
-    heightLowerBoundInput: React.RefObject<HTMLInputElement>
-    areaIgnorePercentageInput: React.RefObject<HTMLInputElement>
-    hotKeyInput: React.RefObject<HTMLInputElement>
-    hotkeyCtrlInput: React.RefObject<HTMLInputElement>
-    hotkeyAltInput: React.RefObject<HTMLInputElement>
-    matchRef: React.RefObject<HTMLInputElement>
-    selectorRef: React.RefObject<HTMLInputElement>
+    widthLowerBoundInput: React.RefObject<HTMLInputElement> = React.createRef()
+    heightLowerBoundInput: React.RefObject<HTMLInputElement> = React.createRef()
+    areaIgnorePercentageInput: React.RefObject<HTMLInputElement> = React.createRef()
+
+    hotKeyInput: React.RefObject<HTMLInputElement> = React.createRef()
+    hotkeyCtrlInput: React.RefObject<HTMLInputElement> = React.createRef()
+    hotkeyAltInput: React.RefObject<HTMLInputElement> = React.createRef()
+
+    matchRef: React.RefObject<HTMLInputElement> = React.createRef()
+    selectorRef: React.RefObject<HTMLInputElement> = React.createRef()
+
+    ImageSrcFrom: React.RefObject<HTMLInputElement> = React.createRef()
+    ImageSrcTo: React.RefObject<HTMLInputElement> = React.createRef()
 
     constructor(props: Config) {
         super(props)
-
-        this.widthLowerBoundInput = React.createRef()
-        this.heightLowerBoundInput = React.createRef()
-        this.areaIgnorePercentageInput = React.createRef()
-        this.hotKeyInput = React.createRef()
-        this.hotkeyCtrlInput = React.createRef()
-        this.hotkeyAltInput = React.createRef()
-        this.matchRef = React.createRef()
-        this.selectorRef = React.createRef()
 
         this.state = {
             matchList: props.matchList
         }
     }
 
-    handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
+    handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
-        
         chrome.storage.local.set({
             widthLowerBound: this.widthLowerBoundInput.current!.valueAsNumber,
             heightLowerBound: this.heightLowerBoundInput.current!.valueAsNumber,
@@ -52,7 +48,7 @@ class ConfigForm extends React.Component<Config, ConfigFormState> {
         })
     }
 
-    handleAddMatch = (event: React.FormEvent<HTMLFormElement>): void => {
+    handleAddMatch = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
 
         const match = this.matchRef.current!.value
@@ -70,19 +66,23 @@ class ConfigForm extends React.Component<Config, ConfigFormState> {
         }, this.syncMatchList)
     }
 
-    handleDel = (index: number): void => {
+    handleDel = (index: number) => {
         const newMatchList = [...this.state.matchList]
         newMatchList.splice(index, 1)
         this.setState({ matchList: newMatchList }, this.syncMatchList)
     }
 
-    toggleEnableState = (index: number): void => {
+    toggleEnableState = (index: number) => {
         const newMatchList = [...this.state.matchList]
         newMatchList[index].isEnabled = !newMatchList[index].isEnabled
         this.setState({ matchList: newMatchList }, this.syncMatchList)
     }
 
-    syncMatchList = (): void => {
+    handleAddImageSrcConvert = () => {
+
+    }
+
+    syncMatchList = () => {
         chrome.storage.local.set({ matchList: this.state.matchList })
     }
 
@@ -180,9 +180,15 @@ class ConfigForm extends React.Component<Config, ConfigFormState> {
                     <div className="config-row config-automation">
                         <label>
                             Match URL:
-                            <input ref={this.matchRef} placeholder="regular expression" type="text" required />
+                            <input
+                                ref={this.matchRef}
+                                placeholder="regular expression"
+                                type="text"
+                                required />
                             CSS selector (optional):
-                            <input ref={this.selectorRef} type="text" />
+                            <input
+                                ref={this.selectorRef}
+                                type="text" />
                             <button type="submit"> add </button>
                         </label>
                     </div>
@@ -195,33 +201,6 @@ class ConfigForm extends React.Component<Config, ConfigFormState> {
 
 function Title({ text }: { text: string }): JSX.Element {
     return <div className="title"> {text} </div>
-}
-
-type MatchListProps = {
-    list: MatchDetail[];
-    handleDel: (index: number) => void;
-    toggleEnableState: (index: number) => void;
-}
-
-function MatchList(props: MatchListProps): JSX.Element {
-    return (
-        <div id="match-list">
-            {props.list.map((detail, index) => {
-                return (
-                    <div className="match-row">
-                        <p className={`${detail.isEnabled ? 'enabled' : 'disabled'}`}>
-                            <b>Match URL</b>: {detail.match}
-                            <b>{detail.selector && `, CSS selector:`}</b> {detail.selector && `${detail.selector}`}
-                        </p>
-                        <button onClick={(): void => props.toggleEnableState(index)}>
-                            {detail.isEnabled ? 'disable' : 'enable'}
-                        </button>
-                        <button onClick={(): void => props.handleDel(index)}> delete </button>
-                    </div>
-                )
-            })}
-        </div>
-    )
 }
 
 

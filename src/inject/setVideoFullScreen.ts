@@ -5,7 +5,6 @@ import { appendStyleNode, runInPageContext, concatCSSRuleMap } from './util'
 export default function setVideoFullScreen(target: HTMLVideoElement): void {
 
     const styleNode = appendStyleNode(`
-        /* same to: * { ... } */
         :not(#for-higher-specificity) {
             visibility: hidden !important;
             overflow: visible !important;
@@ -18,12 +17,16 @@ export default function setVideoFullScreen(target: HTMLVideoElement): void {
             overflow: hidden !important;
         }
     `)
+    StateHandler.registerExitStep(() => styleNode.remove())
 
     const originalStyleMap = new Map()
     for (const styleName of target.style) {
         const priority = target.style.getPropertyPriority(styleName) === 'important' ? '!important' : ''
         originalStyleMap.set(styleName, `${target.style.getPropertyValue(styleName)} ${priority}`.trim())
     }
+    StateHandler.registerExitStep(() => {
+        target.style.cssText = concatCSSRuleMap(originalStyleMap)
+    })
 
     const CSSRuleMap: Map<string, string> = new Map([
         ['position', 'fixed !important'],
@@ -66,21 +69,15 @@ export default function setVideoFullScreen(target: HTMLVideoElement): void {
         observer.observe(target, obConfig)
     })
     ob.observe(target, obConfig)
+    StateHandler.registerExitStep(() => ob.disconnect())
 
 
-    if (target.getAttribute('controls') !== null) {
-        StateHandler.registerExitStep(() => {
-            target.style.cssText = concatCSSRuleMap(originalStyleMap)
-            ob.disconnect()
-            styleNode.remove()
-        })
-    } else {
-        target.setAttribute('controls', '')
+    if (target.getAttribute('controls') === null) {
 
         /** use this type to prevent ts compile error */
         const hookedVideo = target as FullScreenVideo
 
-        const handleClick = (ev: MouseEvent): void => {
+        const handleClick = (ev: MouseEvent) => {
             if (ev.target == hookedVideo) {
                 if (hookedVideo.paused) hookedVideo.play('fullscreen')
                 else hookedVideo.pause('fullscreen')
@@ -88,7 +85,7 @@ export default function setVideoFullScreen(target: HTMLVideoElement): void {
             }
         }
 
-        const handleSpacePress = (ev: KeyboardEvent): void => {
+        const handleSpacePress = (ev: KeyboardEvent) => {
             if (ev.key == 'Space') {
                 if (hookedVideo.paused) hookedVideo.play('fullscreen')
                 else hookedVideo.pause('fullscreen')
@@ -96,28 +93,31 @@ export default function setVideoFullScreen(target: HTMLVideoElement): void {
             }
         }
 
+        const handleContextmenu = (ev: MouseEvent) => {
+            if (ev.target === target) {
+                ev.stopPropagation()
+            }
+        }
+
         document.addEventListener('click', handleClick, { capture: true })
         document.addEventListener('keyup', handleSpacePress)
-
-        runInPageContext(hookMediaPrototype)
+        document.addEventListener('contextmenu', handleContextmenu, { capture: true })
 
         StateHandler.registerExitStep(() => {
-            // this looks like a callback but it runs synchronously
-            // so the hooked removeAttribute method get recovered before
-            // target.removeAttribute('controls') remove controls
+            document.removeEventListener('click', handleClick, { capture: true })
+            document.removeEventListener('keyup', handleSpacePress)
+            document.removeEventListener('contextmenu', handleContextmenu, { capture: true })
+        })
+
+        runInPageContext(hookMediaPrototype)
+        StateHandler.registerExitStep(() => 
             runInPageContext(() => {
                 (window as any)['___$recoverHook___']()
             })
+        )
 
-            target.style.cssText = concatCSSRuleMap(originalStyleMap)
-            ob.disconnect()
-            // target.style.cssText = originalStyle
-            target.removeAttribute('controls')
-            styleNode.remove()
-
-            document.removeEventListener('click', handleClick, { capture: true })
-            document.removeEventListener('keyup', handleSpacePress)
-        })
+        target.setAttribute('controls', '')
+        StateHandler.registerExitStep(() => target.removeAttribute('controls'))
     }
 }
 

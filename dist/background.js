@@ -18,16 +18,6 @@ const defaultConfig = {
         },
     ],
 };
-const configKeys = (/* unused pure expression or super */ null && ([
-    'widthLowerBound',
-    'heightLowerBound',
-    'areaIgnorePercentage',
-    'hotkeyCtrl',
-    'hotkeyAlt',
-    'hotKey',
-    'hotkeyEnable',
-    'matchList',
-]));
 
 ;// CONCATENATED MODULE: ./src/background.ts
 

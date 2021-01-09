@@ -369,7 +369,7 @@ chrome.storage.local.get(Object.keys(defaultConfig), function (result) {
     })
 
     // when the extension icon being clicked
-    chrome.runtime.onMessage.addListener(function (msg: contentScriptMessage) {
+    chrome.runtime.onMessage.addListener(function (msg: ContentScriptMessage) {
         if (msg.action === 'fullscreen') {
             if (StateHandler.state === 'on') StateHandler.exit()
             else fullscreener.start()

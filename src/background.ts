@@ -23,6 +23,6 @@ chrome.storage.onChanged.addListener(function (changes) {
 
 
 chrome.browserAction.onClicked.addListener(function (tab) {
-    const msg: contentScriptMessage = { action: 'fullscreen' }
+    const msg: ContentScriptMessage = { action: 'fullscreen' }
     chrome.tabs.sendMessage(tab.id as number, msg)
 })

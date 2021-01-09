@@ -2,7 +2,7 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 947:
+/***/ 215:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -14,7 +14,7 @@
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "#root{display:flex;flex-direction:column;justify-content:center}#root input{text-align:center}#root input:invalid{border:2px dashed red}#root .config-row{display:flex;flex-direction:row;justify-content:center;margin-bottom:5px}#root .config-lower-bound input{width:60px;margin:0 3px 0 5px}#root .config-ignore-percentage input{width:65px;margin-left:5px;margin-right:5px}#root .config-hotkey input{margin-left:5px;margin-right:15px}#root .config-hotkey input[type=\"text\"]{width:25px}#root .config-hotkey input[type=\"checkbox\"]{width:auto}#root .submit{display:flex;justify-content:flex-end}#root .submit button{margin-right:20px}#root .config-automation input{margin:0 4px 0 4px}#match-list{display:flex;flex-direction:column}#match-list .match-row{display:flex;flex-direction:row;margin:0 0 8px 0;justify-content:center;align-items:center;height:25px}#match-list p{display:inline}#match-list p.disabled{color:gray}#match-list button{margin-left:20px}.title{display:flex;align-items:center;margin-bottom:10px;margin-top:20px}.title::before,.title::after{content:\"\";flex:1;height:1px;background:#ccc}.title::before{margin-right:10px;margin-left:30%}.title::after{margin-left:10px;margin-right:30%}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "#root{display:flex;flex-direction:column;justify-content:center}#root input{text-align:center}#root input:invalid{border:2px dashed #ff6969}#root .config-row{display:flex;flex-direction:row;justify-content:center;margin-bottom:5px}#root .config-lower-bound input{width:60px;margin:0 3px 0 5px}#root .config-ignore-percentage input{width:65px;margin-left:5px;margin-right:5px}#root .config-hotkey input{margin-left:5px;margin-right:15px}#root .config-hotkey input[type=\"text\"]{width:25px}#root .config-hotkey input[type=\"checkbox\"]{width:auto}#root .submit{display:flex;justify-content:flex-end}#root .submit button{margin-right:20px}#root .config-automation input,#root .config-image-src input{margin:0 4px 0 4px}#match-list{display:flex;flex-direction:column}#match-list .match-row{display:flex;flex-direction:row;margin:0 0 8px 0;justify-content:center;align-items:center;height:25px}#match-list p{display:inline}#match-list p.disabled{color:gray}#match-list button{margin-left:20px}.title{display:flex;align-items:center;margin-bottom:10px;margin-top:20px}.title::before,.title::after{content:\"\";flex:1;height:1px;background:#ccc}.title::before{margin-right:10px;margin-left:30%}.title::after{margin-left:10px;margin-right:30%}@media (prefers-color-scheme: dark){body{background:#101010;color:white}input{background:#2b2b2b;color:white}button{background:#353535;color:white}}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -950,9 +950,9 @@ var react_dom = __webpack_require__(935);
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__(379);
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
-// EXTERNAL MODULE: ./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./src/options.scss
-var options = __webpack_require__(947);
-;// CONCATENATED MODULE: ./src/options.scss
+// EXTERNAL MODULE: ./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./src/options/options.scss
+var options = __webpack_require__(215);
+;// CONCATENATED MODULE: ./src/options/options.scss
 
             
 
@@ -965,7 +965,24 @@ var update = injectStylesIntoStyleTag_default()(options/* default */.Z, options_
 
 
 
-/* harmony default export */ const src_options = (options/* default.locals */.Z.locals || {});
+/* harmony default export */ const src_options_options = (options/* default.locals */.Z.locals || {});
+;// CONCATENATED MODULE: ./src/options/components/MatchList.tsx
+
+function MatchList(props) {
+    return (react.createElement("div", { id: "match-list" }, props.list.map((detail, index) => {
+        return (react.createElement("div", { className: "match-row" },
+            react.createElement("p", { className: `${detail.isEnabled ? 'enabled' : 'disabled'}` },
+                react.createElement("b", null, "Match URL"),
+                ": ",
+                detail.match,
+                react.createElement("b", null, detail.selector && `, CSS selector:`),
+                " ",
+                detail.selector && `${detail.selector}`),
+            react.createElement("button", { onClick: () => props.toggleEnableState(index) }, detail.isEnabled ? 'disable' : 'enable'),
+            react.createElement("button", { onClick: () => props.handleDel(index) }, " delete ")));
+    })));
+}
+
 ;// CONCATENATED MODULE: ./src/global.ts
 const defaultConfig = {
     widthLowerBound: 100,
@@ -983,18 +1000,9 @@ const defaultConfig = {
         },
     ],
 };
-const configKeys = (/* unused pure expression or super */ null && ([
-    'widthLowerBound',
-    'heightLowerBound',
-    'areaIgnorePercentage',
-    'hotkeyCtrl',
-    'hotkeyAlt',
-    'hotKey',
-    'hotkeyEnable',
-    'matchList',
-]));
 
-;// CONCATENATED MODULE: ./src/options.tsx
+;// CONCATENATED MODULE: ./src/options/options.tsx
+
 
 
 
@@ -1002,6 +1010,16 @@ const configKeys = (/* unused pure expression or super */ null && ([
 class ConfigForm extends react.Component {
     constructor(props) {
         super(props);
+        this.widthLowerBoundInput = react.createRef();
+        this.heightLowerBoundInput = react.createRef();
+        this.areaIgnorePercentageInput = react.createRef();
+        this.hotKeyInput = react.createRef();
+        this.hotkeyCtrlInput = react.createRef();
+        this.hotkeyAltInput = react.createRef();
+        this.matchRef = react.createRef();
+        this.selectorRef = react.createRef();
+        this.ImageSrcFrom = react.createRef();
+        this.ImageSrcTo = react.createRef();
         this.handleSubmit = (event) => {
             event.preventDefault();
             chrome.storage.local.set({
@@ -1038,17 +1056,11 @@ class ConfigForm extends react.Component {
             newMatchList[index].isEnabled = !newMatchList[index].isEnabled;
             this.setState({ matchList: newMatchList }, this.syncMatchList);
         };
+        this.handleAddImageSrcConvert = () => {
+        };
         this.syncMatchList = () => {
             chrome.storage.local.set({ matchList: this.state.matchList });
         };
-        this.widthLowerBoundInput = react.createRef();
-        this.heightLowerBoundInput = react.createRef();
-        this.areaIgnorePercentageInput = react.createRef();
-        this.hotKeyInput = react.createRef();
-        this.hotkeyCtrlInput = react.createRef();
-        this.hotkeyAltInput = react.createRef();
-        this.matchRef = react.createRef();
-        this.selectorRef = react.createRef();
         this.state = {
             matchList: props.matchList
         };
@@ -1097,20 +1109,6 @@ function Title({ text }) {
         " ",
         text,
         " ");
-}
-function MatchList(props) {
-    return (react.createElement("div", { id: "match-list" }, props.list.map((detail, index) => {
-        return (react.createElement("div", { className: "match-row" },
-            react.createElement("p", { className: `${detail.isEnabled ? 'enabled' : 'disabled'}` },
-                react.createElement("b", null, "Match URL"),
-                ": ",
-                detail.match,
-                react.createElement("b", null, detail.selector && `, CSS selector:`),
-                " ",
-                detail.selector && `${detail.selector}`),
-            react.createElement("button", { onClick: () => props.toggleEnableState(index) }, detail.isEnabled ? 'disable' : 'enable'),
-            react.createElement("button", { onClick: () => props.handleDel(index) }, " delete ")));
-    })));
 }
 chrome.storage.local.get(Object.keys(defaultConfig), function (result) {
     react_dom.render(react.createElement(ConfigForm, Object.assign({}, result)), document.getElementById("root"));

@@ -500,16 +500,6 @@ const defaultConfig = {
         },
     ],
 };
-const configKeys = (/* unused pure expression or super */ null && ([
-    'widthLowerBound',
-    'heightLowerBound',
-    'areaIgnorePercentage',
-    'hotkeyCtrl',
-    'hotkeyAlt',
-    'hotKey',
-    'hotkeyEnable',
-    'matchList',
-]));
 
 ;// CONCATENATED MODULE: ./src/inject/StateHandler.ts
 
@@ -567,34 +557,45 @@ class FullscreenImage {
             showToolbar: false,
             viewMode: 'fit-viewport',
             rotateDegree: 0,
-            scale: 1,
+            // scale: 1,
+            customWidth: 0,
+            customHeight: 0,
+            top: 0,
+            left: 0,
         };
-        this.setState = (newState) => {
-            this.state = { ...this.state, ...newState };
-            if (this.state.viewMode === 'fit-viewport') {
+        this.setState = (state) => {
+            const newState = { ...this.state, ...state };
+            if (newState.viewMode === 'fit-viewport') {
                 this.container.classList.add('fit-viewport');
                 this.container.classList.remove('custom-size');
                 this.fitViewport.remove();
                 this.toolsContainer.appendChild(this.exitFitViewport);
-                // do not scale image in fit-viewport mode
-                this.img.style.transform = `rotate(${this.state.rotateDegree}deg)`;
+                this.img.style.width = '';
+                this.img.style.height = '';
+                this.img.style.top = '';
+                this.img.style.left = '';
             }
-            else if (this.state.viewMode === 'custom-size') {
+            else if (newState.viewMode === 'custom-size') {
                 this.container.classList.remove('fit-viewport');
                 this.container.classList.add('custom-size');
                 this.exitFitViewport.remove();
                 this.toolsContainer.appendChild(this.fitViewport);
-                this.img.style.transform = `rotate(${this.state.rotateDegree}deg) scale(${this.state.scale})`;
+                this.img.style.top = `${newState.top}px`;
+                this.img.style.left = `${newState.left}px`;
+                this.img.style.width = `${newState.customWidth}px`;
+                this.img.style.height = `${newState.customHeight}px`;
             }
+            this.img.style.transform = `rotate(${newState.rotateDegree}deg)`;
             // toolbar
-            this.toolsContainer.classList.toggle('hide-button', !this.state.showToolbar);
-            this.toolsContainer.classList.toggle('show-button', this.state.showToolbar);
+            this.toolsContainer.classList.toggle('hide-button', !newState.showToolbar);
+            this.toolsContainer.classList.toggle('show-button', newState.showToolbar);
             const scrollbarWidth = this.container.offsetWidth - this.container.clientWidth;
             const scrollbarHeight = this.container.offsetHeight - this.container.clientHeight;
             this.toolsContainer.style.right = `${scrollbarWidth}px`;
             this.toolsContainer.style.height = `calc(100% - ${scrollbarHeight}px)`;
-            this.img.classList.toggle('horizontal', this.state.rotateDegree === 0 || this.state.rotateDegree === 180);
-            this.img.classList.toggle('vertical', this.state.rotateDegree === 90 || this.state.rotateDegree === 270);
+            this.img.classList.toggle('horizontal', newState.rotateDegree === 0 || newState.rotateDegree === 180);
+            this.img.classList.toggle('vertical', newState.rotateDegree === 90 || newState.rotateDegree === 270);
+            this.state = newState;
         };
         this.addClassName = () => {
             this.container.className = '--auto-fullscreen-contianer';
@@ -611,10 +612,20 @@ class FullscreenImage {
                 this.setState({ rotateDegree });
             };
             this.exitFitViewport.onclick = () => {
-                this.setState({ viewMode: 'custom-size' });
+                this.setState({
+                    viewMode: 'custom-size',
+                    top: (window.innerHeight - this.img.naturalHeight) / 2,
+                    left: (window.innerWidth - this.img.naturalWidth) / 2,
+                    customHeight: this.img.naturalHeight,
+                    customWidth: this.img.naturalWidth,
+                });
             };
             this.fitViewport.onclick = () => {
-                this.setState({ viewMode: 'fit-viewport' });
+                this.setState({
+                    viewMode: 'fit-viewport',
+                    customHeight: this.img.naturalHeight,
+                    customWidth: this.img.naturalWidth,
+                });
             };
             const closeImage = () => this.container.remove();
             StateHandler.registerExitStep(closeImage);
@@ -629,11 +640,23 @@ class FullscreenImage {
             this.img.addEventListener('wheel', ev => {
                 ev.preventDefault();
                 if (this.state.viewMode === 'custom-size') {
+                    const hDiff = this.state.customHeight * 0.05;
+                    const wDiff = this.state.customWidth * 0.05;
                     if (ev.deltaY > 0) {
-                        this.setState({ scale: this.state.scale - 0.05 });
+                        this.setState({
+                            customWidth: this.state.customWidth + wDiff,
+                            customHeight: this.state.customHeight + hDiff,
+                            left: this.state.left - wDiff / 2,
+                            top: this.state.top - hDiff / 2,
+                        });
                     }
                     else if (ev.deltaY < 0) {
-                        this.setState({ scale: this.state.scale + 0.05 });
+                        this.setState({
+                            customWidth: this.state.customWidth - wDiff,
+                            customHeight: this.state.customHeight - hDiff,
+                            left: this.state.left + wDiff / 2,
+                            top: this.state.top + hDiff / 2,
+                        });
                     }
                 }
             });
@@ -647,8 +670,10 @@ class FullscreenImage {
                 pos2 = pos4 - ev.clientY;
                 pos3 = ev.clientX;
                 pos4 = ev.clientY;
-                this.img.style.top = `${this.img.offsetTop - pos2}px`;
-                this.img.style.left = `${this.img.offsetLeft - pos1}px`;
+                this.setState({
+                    top: this.img.offsetTop - pos2,
+                    left: this.img.offsetLeft - pos1
+                });
             };
             this.img.addEventListener('mousedown', ev => {
                 ev.preventDefault();
@@ -673,6 +698,8 @@ class FullscreenImage {
             this.img.src = target.src;
         else
             this.img.src = target;
+        this.state.customHeight = this.img.naturalHeight;
+        this.state.customWidth = this.img.naturalWidth;
         this.originalBodyStyle = document.body.style.cssText;
         document.body.style.cssText = 'overflow: hidden !important';
         StateHandler.registerExitStep(() => {
@@ -723,7 +750,6 @@ function concatCSSRuleMap(CSSRuleMap) {
 
 function setVideoFullScreen(target) {
     const styleNode = appendStyleNode(`
-        /* same to: * { ... } */
         :not(#for-higher-specificity) {
             visibility: hidden !important;
             overflow: visible !important;
@@ -736,11 +762,15 @@ function setVideoFullScreen(target) {
             overflow: hidden !important;
         }
     `);
+    StateHandler.registerExitStep(() => styleNode.remove());
     const originalStyleMap = new Map();
     for (const styleName of target.style) {
         const priority = target.style.getPropertyPriority(styleName) === 'important' ? '!important' : '';
         originalStyleMap.set(styleName, `${target.style.getPropertyValue(styleName)} ${priority}`.trim());
     }
+    StateHandler.registerExitStep(() => {
+        target.style.cssText = concatCSSRuleMap(originalStyleMap);
+    });
     const CSSRuleMap = new Map([
         ['position', 'fixed !important'],
         ['top', '0px !important'],
@@ -783,15 +813,8 @@ function setVideoFullScreen(target) {
         observer.observe(target, obConfig);
     });
     ob.observe(target, obConfig);
-    if (target.getAttribute('controls') !== null) {
-        StateHandler.registerExitStep(() => {
-            target.style.cssText = concatCSSRuleMap(originalStyleMap);
-            ob.disconnect();
-            styleNode.remove();
-        });
-    }
-    else {
-        target.setAttribute('controls', '');
+    StateHandler.registerExitStep(() => ob.disconnect());
+    if (target.getAttribute('controls') === null) {
         /** use this type to prevent ts compile error */
         const hookedVideo = target;
         const handleClick = (ev) => {
@@ -812,24 +835,25 @@ function setVideoFullScreen(target) {
                 ev.preventDefault();
             }
         };
+        const handleContextmenu = (ev) => {
+            if (ev.target === target) {
+                ev.stopPropagation();
+            }
+        };
         document.addEventListener('click', handleClick, { capture: true });
         document.addEventListener('keyup', handleSpacePress);
-        runInPageContext(hookMediaPrototype);
+        document.addEventListener('contextmenu', handleContextmenu, { capture: true });
         StateHandler.registerExitStep(() => {
-            // this looks like a callback but it runs synchronously
-            // so the hooked removeAttribute method get recovered before
-            // target.removeAttribute('controls') remove controls
-            runInPageContext(() => {
-                window['___$recoverHook___']();
-            });
-            target.style.cssText = concatCSSRuleMap(originalStyleMap);
-            ob.disconnect();
-            // target.style.cssText = originalStyle
-            target.removeAttribute('controls');
-            styleNode.remove();
             document.removeEventListener('click', handleClick, { capture: true });
             document.removeEventListener('keyup', handleSpacePress);
+            document.removeEventListener('contextmenu', handleContextmenu, { capture: true });
         });
+        runInPageContext(hookMediaPrototype);
+        StateHandler.registerExitStep(() => runInPageContext(() => {
+            window['___$recoverHook___']();
+        }));
+        target.setAttribute('controls', '');
+        StateHandler.registerExitStep(() => target.removeAttribute('controls'));
     }
 }
 /**
